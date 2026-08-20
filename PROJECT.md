@@ -25,6 +25,7 @@ Todo el Core del sistema deberá poder reutilizarse posteriormente desde una apl
 # Arquitectura General
 
 Frontend
+
 - SAPUI5
 - MVC
 - Component.js
@@ -33,19 +34,23 @@ Frontend
 - Services
 
 Backend
+
 - Node.js
 - Express
 - Arquitectura Hexagonal + Shared Kernel
 
 Persistencia
+
 - SQLite (Desktop)
 - Arquitectura preparada para múltiples proveedores.
 
 IA
+
 - Modelo Local embebido.
 - Arquitectura desacoplada mediante AI Provider.
 
 Integraciones
+
 - Gmail
 - Outlook
 - IMAP

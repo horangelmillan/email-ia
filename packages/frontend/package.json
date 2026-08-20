@@ -1,0 +1,10 @@
+{
+  "name": "@email-ia/frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo \"Frontend build pendiente de Fase 2 (UI5 CLI v4)\"",
+    "typecheck": "echo \"Frontend typecheck pendiente de Fase 2 (UI5 CLI v4)\""
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@email-ia/electron",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo \"Electron build pendiente de Fase 2 (vite-plugin-electron)\"",
+    "typecheck": "echo \"Electron typecheck pendiente de Fase 2 (vite-plugin-electron)\""
+  }
+}

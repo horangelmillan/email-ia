@@ -1,0 +1,12 @@
+{
+  "extends": "@email-ia/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "@email-ia/*": ["../../packages/*/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

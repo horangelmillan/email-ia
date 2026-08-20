@@ -2,9 +2,9 @@
 
 ## Estado General
 
-Fase: 0 — Definición (CERRADA)
+Fase: 1 — Fundación técnica (EN CURSO)
 
-Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y registradas en ADR-001/ADR-002. Listo para iniciar Fase 1 — Fundación técnica (scaffolding del monorepo).
+Estado: Scaffolding del monorepo completado y verificado (lint, typecheck, build, test en verde). Siguiente: spike técnico Electron ↔ Web + runtime IA.
 
 Última actualización: 2026-08-19
 
@@ -16,13 +16,15 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 
 - [x] Stack decidido: Node.js + Express, hexagonal + Shared Kernel (referencias: odata-server, node-modular-monolith-skill)
 - [x] Logging (Pino), configuración (dotenv + zod), error handling unificado, health checks decididos
-- [ ] Scaffolding del paquete `backend` (pendiente Fase 1)
+- [x] Scaffolding del paquete `backend` (workspace @email-ia/backend)
+- [ ] Lógica real del backend (Express, adapters) — Fase 2
 
 ## Frontend
 
 - [x] SAPUI5 (MVC) + UI5 CLI v4 decidido
 - [x] UI Component Playground + regresión visual (Playwright) decididos
-- [ ] Scaffolding del paquete `frontend` (pendiente Fase 1)
+- [x] Scaffolding del paquete `frontend` (placeholder; build/typecheck echo)
+- [ ] Bootstrap de la app SAPUI5 con UI5 CLI v4 (routing, models, services) — Fase 2
 
 ## IA
 
@@ -43,8 +45,9 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 ## Testing
 
 - [x] Vitest (backend/frontend), Supertest, Playwright, Pact + MSW, faker/factories decididos
+- [x] Configuración real: Vitest 4 (workspace, aliases @email-ia/* → src, cobertura umbral 80%) y Playwright (config raíz, e2e/)
 - [~] Estrategia de testing IA (golden dataset/evals definida en §3.7; materializar en Fase 2)
-- [ ] Configuración real de Vitest/Playwright (pendiente Fase 1)
+- [ ] Instalación de browsers Playwright cuando existan tests e2e reales
 
 ## Seguridad
 
@@ -56,7 +59,8 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 
 - [x] CI (lint, typecheck, test, build), dependabot, npm audit + CodeQL (evaluar), Gitleaks/TruffleHog, branch protection main/dev decididos
 - [x] CD: solo local por ahora (sin destino de despliegue)
-- [ ] Workflows GitHub Actions (pendiente Fase 3)
+- [x] Workflow CI inicial (`.github/workflows/ci.yml`) + dependabot.yml creados
+- [ ] Activar branch protection cuando exista remoto; evaluar CodeQL
 
 ---
 
@@ -64,24 +68,20 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 
 ## Alta
 
-- Fase 1 — Fundación técnica: scaffolding monorepo custom (packages: core, backend, frontend, electron, ai-provider, db, shared; tools: eslint-config, tsconfig, prettier-config)
-- Fase 1 — pnpm workspace, `.nvmrc`/engines (última LTS estable), tsconfig base con aliases @, EditorConfig
-- Fase 1 — ESLint/Prettier (overrides frontend/backend), Husky + lint-staged, commitlint (Conventional Commits), Quality Gates (coverage 80%)
-- Fase 1 — Vitest base (backend/frontend) y Playwright config (e2e, visual regression, trace)
-- Fase 1 — Spike técnico: validar reutilización Electron ↔ Web y runtime de IA embebido
-- Fase 1 — CI pipeline inicial (lint, typecheck, test, build)
-
-## Media
-
+- Fase 1 — Spike técnico: validar reutilización Electron ↔ Web y runtime de IA embebido (próxima tarea)
 - Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider`
 - Fase 2 — Capa de BD (Drizzle + migraciones + SQLCipher + almacén seguro del SO)
 - Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
-- Fase 3 — CI/CD GitHub Actions, dependabot, CodeQL, secret scanning, branch protection
+- Fase 2 — Electron: vite-plugin-electron + electron-builder
+
+## Media
+
+- Fase 3 — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection
+- Fase 3 — Observabilidad: instrumentación OTel activable por configuración, health checks
+- Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
 
 ## Baja
 
-- Fase 4 — Observabilidad: instrumentación OTel activable por configuración, health checks
-- Fase 4+ — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
 - Fase 4+ — Runbooks operativos
 - Futuro — Reevaluar Nx/Turborepo, Loki/Tempo o SaaS si hay destino de despliegue
 
@@ -92,18 +92,20 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 - UI5 Tooling fue renombrado a **UI5 CLI v4** (2025): el build "webpack estándar" ya no es la base oficial; Vite sigue siendo middleware comunitario. La tabla de decisiones original estaba desactualizada.
 - La tabla de decisiones (§6) no reflejaba las respuestas ya dadas en §3 (desincronización corregida el 2026-08-19).
 - Las referencias a "plantillas oficiales" inexistentes (hexagonal/SAPUI5) se resolvieron con repositorios de referencia: odata-server + node-modular-monolith-skill (backend) y SmartInventory-frontend (frontend, copia local).
+- Vitest 4 no resuelve sus tipos internos con `moduleResolution: NodeNext`: la config de desarrollo usa `ESNext + Bundler` (editor/tests) y la de build `NodeNext` (emisión), con `exclude` de `*.test.ts` en build.
+- `@types/node` fijado a ^22 para coincidir con el runtime (Node 22 LTS, .nvmrc).
 
 ---
 
 # Riesgos
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|--------|--------------|---------|------------|
-| Reutilización Electron ↔ Web no validada en código | Media | Alto | Spike técnico temprano en Fase 1 |
-| Testing IA no determinístico | Alta | Alto | Evals + golden dataset (§3.7) |
-| Runtime embebido (llama.cpp/llamafile) con binarios nativos | Media | Medio | Spike en Fase 1; adaptadores alternativos (Ollama/LM Studio) |
-| Secrets en repo (credenciales email) | Media | Crítico | Secret scanning + .gitignore estricto + secrets solo por entorno |
-| UI5 CLI v5 (en desarrollo) rompe build futuro | Baja | Medio | Monitorear releases; migración planificada |
+| Riesgo                                                      | Probabilidad | Impacto | Mitigación                                                       |
+| ----------------------------------------------------------- | ------------ | ------- | ---------------------------------------------------------------- |
+| Reutilización Electron ↔ Web no validada en código          | Media        | Alto    | Spike técnico temprano en Fase 1                                 |
+| Testing IA no determinístico                                | Alta         | Alto    | Evals + golden dataset (§3.7)                                    |
+| Runtime embebido (llama.cpp/llamafile) con binarios nativos | Media        | Medio   | Spike en Fase 1; adaptadores alternativos (Ollama/LM Studio)     |
+| Secrets en repo (credenciales email)                        | Media        | Crítico | Secret scanning + .gitignore estricto + secrets solo por entorno |
+| UI5 CLI v5 (en desarrollo) rompe build futuro               | Baja         | Medio   | Monitorear releases; migración planificada                       |
 
 ---
 
@@ -115,13 +117,13 @@ Estado: Definición completa y documentada. Decisiones D1-D10 resueltas y regist
 
 # Próxima tarea
 
-- Fase 1 — Scaffolding del monorepo: estructura de carpetas, pnpm workspace, tsconfig base, EditorConfig, ESLint/Prettier, Husky + lint-staged + commitlint, Vitest base.
+- Fase 1 — Spike técnico: validar reutilización Electron ↔ Web y runtime de IA embebido (llama.cpp/llamafile vs LM Studio).
 
 ---
 
 # Commits pendientes
 
-- Commit de cierre de definición: ARCHITECTURE_DECISIONS.md (sincronizado), ADR-001, ADR-002, PROJECT_STATE.md. Mensaje: `docs: cerrar fase de definicion` (incluye renombrado de rama master → main).
+- Commit de scaffolding Fase 1 (monorepo, tools, quality gates, CI): paquetes, configs raíz, AGENTS.md, README, .github. Mensaje: `feat: scaffolding monorepo fase 1` (incluye normalización de formato Prettier de la documentación).
 
 ---
 
