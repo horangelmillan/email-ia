@@ -20,6 +20,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['packages/{shared,core,db,ai-provider,backend}/src/**'],
+      exclude: ['**/types.ts'],
       thresholds: {
         lines: 80,
         functions: 80,
