@@ -62,9 +62,9 @@ importers:
 
   packages/ai-provider:
     dependencies:
-      '@email-ia/shared':
+      '@email-ia/core':
         specifier: workspace:*
-        version: link:../shared
+        version: link:../core
     devDependencies:
       '@email-ia/tsconfig':
         specifier: workspace:*

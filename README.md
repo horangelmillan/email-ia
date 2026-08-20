@@ -15,11 +15,11 @@ Aplicación Full Stack Desktop First (Electron) para gestión inteligente de cor
 
 ```
 packages/
-  core/          # Shared Kernel + Domain (núcleo hexagonal)
+  core/          # Núcleo hexagonal: puertos + errores de dominio (Shared Kernel)
   backend/       # Express + adapters (HTTP, DB, Email, AI)
   frontend/      # App SAPUI5 (pendiente Fase 2)
   electron/      # Main + Preload (pendiente Fase 2)
-  ai-provider/   # Puerto hexagonal AI + adapters
+  ai-provider/   # Adaptadores AI (OpenAI-compatible)
   db/            # Capa de BD (Drizzle + migraciones)
   shared/        # Types, utils, constantes, schemas
 tools/

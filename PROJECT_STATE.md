@@ -2,11 +2,11 @@
 
 ## Estado General
 
-Fase: 1 — Fundación técnica (EN CURSO)
+Fase: 2 — Arquitectura base (EN CURSO)
 
-Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ Web) completados y verificados (lint, typecheck, build, test, smoke en verde). Siguiente: Fase 2 — arquitectura base.
+Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: hexágono base en `packages/core` (puerto `AIProviderPort` + errores de dominio `AppError`/`ProviderError`, ADR-003) con `ai-provider` convertido en adaptador puro. Siguiente: capa de BD (Drizzle + SQLCipher).
 
-Última actualización: 2026-08-19
+Última actualización: 2026-08-20
 
 ---
 
@@ -19,6 +19,12 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - [x] Scaffolding del paquete `backend` (workspace @email-ia/backend)
 - [ ] Lógica real del backend (Express, adapters) — Fase 2
 
+## Core
+
+- [x] Hexágono base materializado en `packages/core`: puerto `AIProviderPort` + tipos (chat, embed, listModels, pullModel) en `src/ports/`, errores de dominio `AppError` (estrategia unificada: code/status/details) y `ProviderError` en `src/errors/` (ADR-003, 2026-08-20)
+- [x] `packages/ai-provider` convertido en adaptador del puerto (`OpenAICompatibleProvider` implementa `AIProviderPort` del Core, lanza `ProviderError` del Core, re-exporta contrato por compatibilidad; dep `@email-ia/shared` no usada eliminada)
+- [ ] Resto de puertos del dominio (correo, persistencia) y mapeo HTTP de `AppError` — Fase 2+
+
 ## Frontend
 
 - [x] SAPUI5 (MVC) + UI5 CLI v4 decidido
@@ -30,7 +36,7 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 
 - [x] AI Provider desacoplado (multi-runtime: embebido por defecto, Ollama, LM Studio, OpenAI)
 - [x] Gestor de modelos, RAG, prompts versionados con golden dataset, offline-first, SQLCipher decididos
-- [x] Puerto hexagonal AIProviderPort materializado en `packages/ai-provider`: `AIProviderPort` (chat, embed, listModels, pullModel) + adaptador `OpenAICompatibleProvider` con DI de fetch (tests sin red), normalización de baseUrl (añade `/v1`), timeout 30 s y `ProviderError`. `pullModel` no soportado en OpenAI-compat (pendiente runtime embebido en Fase 2)
+- [x] Puerto hexagonal AIProviderPort en `packages/core` (ADR-003, 2026-08-20): `AIProviderPort` (chat, embed, listModels, pullModel) + adaptador `OpenAICompatibleProvider` en `packages/ai-provider` con DI de fetch (tests sin red), normalización de baseUrl (añade `/v1`), timeout 30 s y `ProviderError` (ahora en el Core). `pullModel` no soportado en OpenAI-compat (pendiente runtime embebido en Fase 2)
 
 ## Electron
 
@@ -74,9 +80,9 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 
 ## Alta
 
-- Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider`
-- Fase 2 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio
+- [x] Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider` (Tarea 2.1, ADR-003)
 - Fase 2 — Capa de BD (Drizzle + migraciones + SQLCipher + almacén seguro del SO)
+- Fase 2 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio
 - Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
 - Fase 2 — Electron: vite-plugin-electron + electron-builder
 
@@ -103,6 +109,8 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - Spike IA (2026-08-19): **node-llama-cpp** solo es compatible con el proceso main de Electron (bindings nativos, fallback build from source); **llamafile** es un binario único portable con servidor OpenAI-compatible sin instalación → runtime embebido recomendado para Fase 2. LM Studio (`http://localhost:1234/v1`) y Ollama (`http://localhost:11434/v1`) exponen la misma API OpenAI-compatible (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`).
 - Spike Electron (2026-08-19): los preloads de Electron **deben ser CommonJS** (`.cjs`) con `sandbox: true` (ESM no soportado en preload sandboxed); los paquetes del Core se resuelven vía workspaces pnpm (dist previo con `pnpm build`).
 - pnpm 11: los ajustes de build de dependencias ya no se leen del campo `pnpm` de package.json ni de `onlyBuiltDependencies`; usan `allowBuilds` en `pnpm-workspace.yaml` (mapa nombre → booleano). Sin él, el postinstall de electron (descarga del binario) se bloquea con `ERR_PNPM_IGNORED_BUILDS`.
+- Windows + `core.autocrlf=true` (2026-08-20): los checkouts salen con CRLF y Prettier (default `endOfLine: lf`) los marca como no formateados → `format:check` fallaba en 4 archivos con contenido correcto. Fix: `.gitattributes` (`text=auto` + `eol=lf` en código/documentación).
+- `PROJECT_STATE.md` (2026-08-20): la sección "Commits pendientes" listaba el commit del spike ya mergeado; se corrigió. Además `develop` quedó 1 commit detrás de `main` tras el PR #1 (branch protection, merge directo a main): sincronizada vía PR #2.
 
 ---
 
@@ -125,18 +133,20 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 
 # Próxima tarea
 
-- Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core` (puertos/adaptadores), capa de BD (Drizzle + SQLCipher), runtime IA embebido (llamafile), bootstrap UI5 CLI v4 y Electron con vite-plugin-electron.
+- Fase 2 · Tarea 2 — Capa de BD: Drizzle + migraciones iniciales + SQLCipher + claves en el almacén seguro del SO (empezar por el esquema base de emails/contactos y el puerto de persistencia del Core).
 
 ---
 
 # Commits pendientes
 
-- Commit del spike (Fase 1): `feat: spike ai-provider y electron` (provider OpenAI-compatible + tests, scaffold electron con smoke, allowBuilds pnpm 11, doc).
+- PR #3 (mergable cuando CI pase): `chore: forzar fin de linea LF con gitattributes` — `.gitattributes` para estabilizar `format:check` en Windows.
+- PR (feature/fase2-core-hexagonal, en curso): ADR-003 + hexágono base en `packages/core` (AIProviderPort, AppError, ProviderError) + `ai-provider` como adaptador.
 
 ---
 
 # Notas
 
 - Decisiones D1-D10 resueltas (2026-08-19). Detalle en ARCHITECTURE_DECISIONS.md y ADR-001/ADR-002.
+- ADR-003 (2026-08-20): puertos y errores de dominio en `packages/core`; adaptadores fuera del núcleo.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
