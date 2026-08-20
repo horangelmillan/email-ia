@@ -65,7 +65,8 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - [x] CI (lint, typecheck, test, build), dependabot, npm audit + CodeQL (evaluar), Gitleaks/TruffleHog, branch protection main/dev decididos
 - [x] CD: solo local por ahora (sin destino de despliegue)
 - [x] Workflow CI inicial (`.github/workflows/ci.yml`) + dependabot.yml creados
-- [ ] Activar branch protection cuando exista remoto; evaluar CodeQL
+- [x] Remoto activo y branch protection en `main` (2026-08-20): repo público `horangelmillan/email-ia` (plan Free: protección de ramas solo en repos públicos), `develop` creado desde `main`, reglas: PR obligatorio + check `quality` + enforce admins + sin force push/deleción. `required_approving_review_count = 0` (repo en solitario: GitHub no permite auto-aprobación del propio PR; subir a ≥1 cuando haya más colaboradores)
+- [ ] Evaluar CodeQL (requiere revisión de cuota Actions) y activar Dependabot alerts/security updates
 
 ---
 
