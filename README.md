@@ -20,13 +20,14 @@ packages/
   frontend/      # App SAPUI5 (pendiente Fase 2)
   electron/      # Main + Preload (pendiente Fase 2)
   ai-provider/   # Adaptadores AI (OpenAI-compatible)
-  db/            # Capa de BD (Drizzle + migraciones)
+  db/            # Capa de BD (Drizzle + libSQL + migraciones 0001 + SecretStore)
   shared/        # Types, utils, constantes, schemas
 tools/
   eslint-config/ # Config ESLint compartida
   tsconfig/      # Config TypeScript compartida
   prettier-config/
-docs/adr/        # Decisiones arquitectónicas (ADR-001, ADR-002)
+docs/adr/        # Decisiones arquitectónicas (ADR-001 .. ADR-004)
+drizzle.config.ts # Drizzle Kit (raíz + packages/db/drizzle.config.ts)
 ```
 
 ## Requisitos
