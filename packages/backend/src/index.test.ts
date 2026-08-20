@@ -9,7 +9,7 @@ describe('backend', () => {
   it('resolves workspace dependencies', () => {
     expect(backendName()).toContain('@email-ia/core');
     expect(backendName()).toContain('@email-ia/db');
-    expect(backendName()).toContain('@email-ia/ai-provider');
+    expect(backendName()).toContain('AI provider');
     expect(backendName()).toContain('@email-ia/shared');
   });
 });

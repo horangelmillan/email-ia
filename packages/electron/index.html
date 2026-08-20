@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email IA — Electron spike</title>
+  </head>
+  <body>
+    <h1>Email IA</h1>
+    <p id="status">Electron spike en marcha</p>
+    <script>
+      const status = document.getElementById('status');
+      if (window.emailIa) {
+        status.textContent = `Preload OK: ${window.emailIa.probe}`;
+      }
+    </script>
+  </body>
+</html>

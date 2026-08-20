@@ -19,4 +19,10 @@ export default [
     ...browser,
     files: ['packages/frontend/**/*.{ts,mts,cts,js,mjs,cjs}'],
   },
+  {
+    files: ['**/*.cjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ];

@@ -3,8 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/main.js",
   "scripts": {
-    "build": "echo \"Electron build pendiente de Fase 2 (vite-plugin-electron)\"",
-    "typecheck": "echo \"Electron typecheck pendiente de Fase 2 (vite-plugin-electron)\""
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "start": "electron .",
+    "smoke": "electron . --smoke"
+  },
+  "dependencies": {
+    "@email-ia/backend": "workspace:*",
+    "@email-ia/core": "workspace:*",
+    "@email-ia/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@email-ia/tsconfig": "workspace:*",
+    "electron": "^37.10.3",
+    "typescript": "^5.0.0"
   }
 }
