@@ -28,6 +28,12 @@ export type {
   UpdateEmailInput,
 } from './ports/email.port.js';
 export type { SecretStorePort } from './ports/secret-store.port.js';
+export type {
+  LocalModelInfo,
+  ModelManagerPort,
+  PullProgress,
+  PullProgressCallback,
+} from './ports/model-manager.port.js';
 export { AppError } from './errors/app-error.js';
 export type { AppErrorOptions } from './errors/app-error.js';
 export { DbError } from './errors/db-error.js';
