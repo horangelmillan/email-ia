@@ -4,7 +4,7 @@
 
 Fase: 2 — Arquitectura base (EN CURSO)
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones iniciales + SQLCipher (via libSQL encryptionKey) + `SecretStorePort` en Core (ADR-004, 2026-08-20). Siguiente: Runtime IA embebido (llamafile) + adaptadores.
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Baseline verde (72 tests, cobertura 91 % statements / 81.3 % branches).
 
 Última actualización: 2026-08-20
 
@@ -24,6 +24,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] Hexágono base materializado en `packages/core`: puerto `AIProviderPort` + tipos (chat, embed, listModels, pullModel) en `src/ports/`, errores de dominio `AppError` (estrategia unificada: code/status/details) y `ProviderError` en `src/errors/` (ADR-003, 2026-08-20)
 - [x] `packages/ai-provider` convertido en adaptador del puerto (`OpenAICompatibleProvider` implementa `AIProviderPort` del Core, lanza `ProviderError` del Core, re-exporta contrato por compatibilidad; dep `@email-ia/shared` no usada eliminada)
 - [x] Puertos de persistencia en `packages/core` (ADR-004, 2026-08-20): `EmailRepositoryPort`/`ContactRepositoryPort` + `SecretStorePort` y `DbError` (extiende `AppError` con `code DB_ERROR`); exportados desde `@email-ia/core`
+- [x] `ModelManagerPort` en `packages/core` (ADR-005, 2026-08-20): `LocalModelInfo`/`PullProgress` + `listLocalModels`/`pullModel`/`removeModel`/`getModelPath`; adaptador `FilesystemModelManager` en `packages/ai-provider` (DI fs/fetch/path, streaming + progreso)
 
 ## Frontend
 
@@ -37,6 +38,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] AI Provider desacoplado (multi-runtime: embebido por defecto, Ollama, LM Studio, OpenAI)
 - [x] Gestor de modelos, RAG, prompts versionados con golden dataset, offline-first, SQLCipher decididos
 - [x] Puerto hexagonal AIProviderPort en `packages/core` (ADR-003, 2026-08-20): `AIProviderPort` (chat, embed, listModels, pullModel) + adaptador `OpenAICompatibleProvider` en `packages/ai-provider` con DI de fetch (tests sin red), normalización de baseUrl (añade `/v1`), timeout 30 s y `ProviderError` (ahora en el Core). `pullModel` no soportado en OpenAI-compat (pendiente runtime embebido en Fase 2)
+- [x] Runtime IA embebido materializado (ADR-005, 2026-08-20): `OllamaProvider` (`POST /api/pull`, NDJSON, normaliza `/v1`→`/api`, timeout 300 s), `LlamafileRuntime` (binaryPath/modelPath/host/port/args, DI spawn/fetch/fs, `getServerUrl`/`healthCheck`/`start`/`stop` con poll 5 s), `FilesystemModelManager` (DI fs/fetch) y factory `createAIProvider({provider, baseUrl, llamafile}, fetchImpl, {llamafileRuntime})` con defaults `ollama:11434/lmstudio:1234/llamafile:8080`; 72 tests, cobertura 91 %/81.3 %
 
 ## Electron
 
@@ -83,7 +85,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 - [x] Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider` (Tarea 2.1, ADR-003)
 - [x] Fase 2 — Capa de BD (Drizzle + libSQL + migraciones + SQLCipher + almacén seguro del SO, ADR-004, 2026-08-20)
-- Fase 2 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio
+- [x] Fase 2 — Runtime IA embebido (llamafile + adaptadores Ollama/LM Studio + ModelManagerPort, ADR-005, 2026-08-20)
 - Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
 - Fase 2 — Electron: vite-plugin-electron + electron-builder
 
@@ -113,6 +115,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Windows + `core.autocrlf=true` (2026-08-20): los checkouts salen con CRLF y Prettier (default `endOfLine: lf`) los marca como no formateados → `format:check` fallaba en 4 archivos con contenido correcto. Fix: `.gitattributes` (`text=auto` + `eol=lf` en código/documentación).
 - `PROJECT_STATE.md` (2026-08-20): la sección "Commits pendientes" listaba el commit del spike ya mergeado; se corrigió. Además `develop` quedó 1 commit detrás de `main` tras el PR #1 (branch protection, merge directo a main): sincronizada vía PR #2.
 - Fase 2 DB (2026-08-20): `better-sqlite3@13.0.3` requiere VS Build Tools (gyp ERR! Could not find any Visual Studio installation) en Windows Node 22; se adoptó `@libsql/client` + `drizzle-orm/libsql` para evitar compilación nativa manteniendo `encryptionKey` (cifrado libSQL) y compatibilidad futura con `better-sqlite3-multiple-ciphers` (cambio solo en `packages/db/src/client/connection.ts`). `drizzle-kit` trae `better-sqlite3` opcional: bloqueado en `allowBuilds:false` + `esbuild:true` para `pnpm approve-builds`.
+- Fase 2 IA (2026-08-20): `exactOptionalPropertyTypes:true` exige `?: T | undefined` explícito y `Required` con unión no propaga; `LlamafileRuntimeConfig`/`FactoryDeps` requirieron `host?: string | undefined` + spread condicional `...(host!==undefined?{host}:{})` para no pasar `undefined` como valor; `FilesystemModelManager` streaming bifurca `body.getReader` vs `arrayBuffer` fallback (dos ramas cubiertas con tests DI fs/fetch).
 
 ---
 
@@ -129,19 +132,20 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno. La definición está completa y no impide iniciar la Fase 1.
+- Ninguno. Fase 2 arquitectura base avanza sin bloqueos.
 
 ---
 
 # Próxima tarea
 
-- Fase 2 · Tarea 3 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio (configurables vía `AIProviderPort`); verificar binario único portable sin instalación.
+- Fase 2 · Tarea 4 — UI5 CLI v4: bootstrap de la app SAPUI5 (Component.js, routing, models, services) + Electron vite-plugin-electron + electron-builder (IPC). Tras ello, Fase 3 CI/CD y observabilidad.
 
 ---
 
 # Commits pendientes
 
-- PR (feature/fase2-db-drizzle-sqlcipher, en curso): ADR-004 + capa de BD (Drizzle + libSQL + migraciones 0001 + `SecretStorePort`/`DbError` en Core + adaptadores `Drizzle*Repository` + `EnvSecretStore`/`KeytarSecretStore` + `createDb`/`migrate`); baseline verde (40 tests, cobertura 91.5 % statements / 80.7 % branches).
+- PR (feature/fase2-db-drizzle-sqlcipher, merge pendiente a `develop`): ADR-004 + capa de BD; baseline previo 40 tests.
+- PR (feature/fase2-ai-runtime, en curso): ADR-005 + runtime IA embebido (llamafile + Ollama/LM Studio + ModelManager + factory); baseline verde (72 tests, cobertura 91 % statements / 81.3 % branches, lint/typecheck/build OK).
 
 ---
 
@@ -150,5 +154,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Decisiones D1-D10 resueltas (2026-08-19). Detalle en ARCHITECTURE_DECISIONS.md y ADR-001/ADR-002.
 - ADR-003 (2026-08-20): puertos y errores de dominio en `packages/core`; adaptadores fuera del núcleo.
 - ADR-004 (2026-08-20): capa de BD — Drizzle + libSQL + migraciones + SecretStore + cifrado; `better-sqlite3` pospuesto por toolchain nativa.
+- ADR-005 (2026-08-20): runtime embebido llamafile (binario único) + Ollama/LM Studio + ModelManagerPort; factory multi-runtime con DI.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
