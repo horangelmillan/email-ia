@@ -1,0 +1,13 @@
+appId: com.emailia.app
+productName: Email IA
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**/*
+  - preload.cjs
+  - index.html
+  - package.json
+extraResources:
+  - from: preload.cjs
+    to: preload.cjs

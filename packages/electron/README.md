@@ -1,14 +1,10 @@
 # @email-ia/electron
 
-Contenedor Electron (Main + Preload).
+Contenedor Electron (Main + Preload + IPC) — ADR-006.
 
-- Electron únicamente como contenedor: el Core no depende de Electron (verificado en el spike).
-- `pnpm --filter @email-ia/electron build` compila `dist/main.js` (ESM).
-- `pnpm --filter @email-ia/electron smoke` arranca Electron en modo smoke: carga los paquetes del Core en el proceso main, loguea la sonda y cierra.
-- `pnpm --filter @email-ia/electron start` abre la ventana de la app.
-
-Notas del spike:
-
-- El preload es CommonJS (`preload.cjs`): los preloads con `sandbox: true` no soportan ESM. Se referencia desde `dist/../preload.cjs` en desarrollo; al empaquetar (electron-builder, Fase 2) se copiará al directorio de salida.
-- Los paquetes del Core se resuelven vía workspaces pnpm (dist previo con `pnpm build`).
-- Pendiente Fase 2: vite-plugin-electron (HMR) + electron-builder (distribución) + IPC real renderer ↔ main.
+- Electron únicamente como contenedor: el Core no depende de Electron (spike --smoke OK).
+- `vite@6.3.5` + `vite-plugin-electron@0.28.8` (HMR): `vite.config.ts` (main `src/main.ts` → `dist/main.js`, preload `src/preload.ts` → `dist/preload.mjs`, renderer `dist/index.html`).
+- `src/main.ts` (BrowserWindow, `sandbox:true`/`contextIsolation:true`, `resolvePreloadPath`/`resolveIndexHtml` con `existsSync` fallback), `src/ipc.ts` (`ipcMain.handle ping/get-versions`), `src/preload.ts` + `preload.cjs` (expone `window.emailIa` con `probe/ping/getVersions`).
+- `electron-builder.yml` (appId `com.emailia.app`, files `dist/**/*` + `preload.cjs`/`index.html`); empaquetado vía `npx --yes electron-builder` (fuera de workspace por hang pnpm en Windows).
+- Scripts: `build` (tsc), `dev` (vite), `build:vite` (vite build), `start` (electron .), `smoke` (electron . --smoke), `package` (npx electron-builder).
+- `pnpm --filter @email-ia/electron build` + `typecheck` verdes; `pnpm build` raíz incluye `tsc` + `ui5 build` (38 s).

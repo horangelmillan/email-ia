@@ -1,0 +1,30 @@
+<mvc:View
+  controllerName="com.emailia.frontend.controller.Home"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f"
+>
+  <f:DynamicPage id="homePage" headerExpanded="true">
+    <f:title>
+      <f:DynamicPageTitle>
+        <f:heading>
+          <Title text="{i18n>appTitle}" />
+        </f:heading>
+        <f:actions>
+          <Button text="{i18n>goInbox}" press=".onNavToInbox" type="Emphasized" />
+        </f:actions>
+      </f:DynamicPageTitle>
+    </f:title>
+    <f:content>
+      <VBox class="sapUiMediumMargin" alignItems="Center">
+        <Title text="{i18n>welcomeTitle}" level="H1" />
+        <Text text="{i18n>welcomeText}" class="sapUiSmallMarginTop" />
+        <ObjectStatus
+          text="{app>/status}"
+          state="Success"
+          class="sapUiSmallMarginTop"
+        />
+      </VBox>
+    </f:content>
+  </f:DynamicPage>
+</mvc:View>

@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "echo \"Frontend build pendiente de Fase 2 (UI5 CLI v4)\"",
-    "typecheck": "echo \"Frontend typecheck pendiente de Fase 2 (UI5 CLI v4)\""
+    "build": "ui5 build --all --clean-dest --dest dist",
+    "start": "ui5 serve --port 8080 --open index.html",
+    "typecheck": "echo \"No TS typecheck for UI5 sources (JS/XML)\"",
+    "lint": "eslint webapp --ext .js",
+    "test": "echo \"UI tests via Playwright (Fase 2+)\""
   }
 }

@@ -2,11 +2,11 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (EN CURSO)
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3 pendiente
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Baseline verde (72 tests, cobertura 91 % statements / 81.3 % branches).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Baseline verde (72 tests, cobertura 91.05 % statements / 81.34 % branches, lint/typecheck/build/format:check OK).
 
-Última actualización: 2026-08-20
+Última actualización: 2026-08-22
 
 ---
 
@@ -30,8 +30,8 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 - [x] SAPUI5 (MVC) + UI5 CLI v4 decidido
 - [x] UI Component Playground + regresión visual (Playwright) decididos
-- [x] Scaffolding del paquete `frontend` (placeholder; build/typecheck echo)
-- [ ] Bootstrap de la app SAPUI5 con UI5 CLI v4 (routing, models, services) — Fase 2
+- [x] Scaffolding del paquete `frontend` (placeholder; build/typecheck echo) — Fase 1
+- [x] Bootstrap UI5 CLI v4 completado (ADR-006, 2026-08-22): `ui5.yaml` (specVersion 4.0, OpenUI5 1.133.0), `webapp/Component.js`, `manifest.json` (routing `home`/`inbox`, modelos `i18n`/`app`), `view/App.view.xml` + `Home`/`Inbox`, `controller/App`/`Home`/`Inbox`, `model/models.js` (app/device), `service/EmailService.js` (healthCheck placeholder), `i18n/*.properties` (en/es), `css/style.css`; build `ui5 build --all` OK (7 proyectos, 30-38 s), `ui5 serve` OK
 
 ## IA
 
@@ -43,7 +43,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 ## Electron
 
 - [x] Spike validado: el Core (`@email-ia/core`, `@email-ia/backend`, `@email-ia/shared`) carga en el proceso main de Electron (sonda `--smoke` OK). Preload CJS (`preload.cjs`) con `sandbox: true` + contextIsolation
-- [ ] Fase 2: vite-plugin-electron (HMR) + electron-builder (empaquetado, copia de preload al dist) + IPC renderer ↔ main
+- [x] Fase 2 completada (ADR-006, 2026-08-22): `vite@6.3.5` + `vite-plugin-electron@0.28.8` (HMR) + `vite.config.ts` (main `src/main.ts` → `dist/main.js`, preload `src/preload.ts` → `dist/preload.mjs` + `dist-electron/preload.mjs`, renderer `dist/index.html`), `electron-builder.yml` (appId `com.emailia.app`, files `dist/**/*` + `preload.cjs`/`index.html`), IPC tipado (`ipc.ts` + `preload.ts`/`preload.cjs` expone `ping`/`getVersions` vía `ipcMain.handle`/`ipcRenderer.invoke`), `pnpm --filter @email-ia/electron dev/build:vite/package` OK; `pnpm build` (tsc) + `pnpm typecheck` verdes; empaquetado vía `npx electron-builder` (paquete no instalado en workspace por hang pnpm en Windows — ver Hallazgos)
 
 ## Base de datos
 
@@ -86,8 +86,8 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider` (Tarea 2.1, ADR-003)
 - [x] Fase 2 — Capa de BD (Drizzle + libSQL + migraciones + SQLCipher + almacén seguro del SO, ADR-004, 2026-08-20)
 - [x] Fase 2 — Runtime IA embebido (llamafile + adaptadores Ollama/LM Studio + ModelManagerPort, ADR-005, 2026-08-20)
-- Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
-- Fase 2 — Electron: vite-plugin-electron + electron-builder
+- [x] Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services (ADR-006, 2026-08-22)
+- [x] Fase 2 — Electron: vite-plugin-electron + electron-builder + IPC (ADR-006, 2026-08-22)
 
 ## Media
 
@@ -116,6 +116,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - `PROJECT_STATE.md` (2026-08-20): la sección "Commits pendientes" listaba el commit del spike ya mergeado; se corrigió. Además `develop` quedó 1 commit detrás de `main` tras el PR #1 (branch protection, merge directo a main): sincronizada vía PR #2.
 - Fase 2 DB (2026-08-20): `better-sqlite3@13.0.3` requiere VS Build Tools (gyp ERR! Could not find any Visual Studio installation) en Windows Node 22; se adoptó `@libsql/client` + `drizzle-orm/libsql` para evitar compilación nativa manteniendo `encryptionKey` (cifrado libSQL) y compatibilidad futura con `better-sqlite3-multiple-ciphers` (cambio solo en `packages/db/src/client/connection.ts`). `drizzle-kit` trae `better-sqlite3` opcional: bloqueado en `allowBuilds:false` + `esbuild:true` para `pnpm approve-builds`.
 - Fase 2 IA (2026-08-20): `exactOptionalPropertyTypes:true` exige `?: T | undefined` explícito y `Required` con unión no propaga; `LlamafileRuntimeConfig`/`FactoryDeps` requirieron `host?: string | undefined` + spread condicional `...(host!==undefined?{host}:{})` para no pasar `undefined` como valor; `FilesystemModelManager` streaming bifurca `body.getReader` vs `arrayBuffer` fallback (dos ramas cubiertas con tests DI fs/fetch).
+- Fase 2 UI+Electron (2026-08-22): `core.autocrlf=true` recayó tras `pnpm add` (46 files con CRLF) → fix `git config core.autocrlf false` + `git add --renormalize .` + `pnpm format` (Prettier `eol=lf`). UI5 CLI v4 `ui5.yaml` exige `specVersion 4.0` + `framework OpenUI5 1.133.0`; `manifest.json` warning `fallbackLocale 'en'` sin `i18n_en.properties` → crear `i18n_en.properties`/`i18n_es.properties`. `vite-plugin-electron@0.28.8` requiere `vite@6` (no 8) y `preload` output por defecto `dist-electron/` → configurar `vite.build.outDir='dist'` para unificar; `resolvePreloadPath()` con `existsSync` para fallback `preload.mjs` vs `preload.cjs`. `electron-builder@25.1.8` en workspace causa hang infinito de `pnpm --filter`/`pnpm -r` en Windows (pnpm store scan >120 s con 25.1.8 deps) → retirado de `@email-ia/electron/package.json`, empaquetado vía `npx --yes electron-builder` sin instalar en workspace; `pnpm build/typecheck/test` recuperados (exit 0). ESLint `dist-electron/preload.mjs` con `require` ignorado vía `eslint.config.js: ignores dist-electron/release` y `.prettierignore`.
 
 ---
 
@@ -132,20 +133,20 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno. Fase 2 arquitectura base avanza sin bloqueos.
+- Ninguno. Fase 2 completada sin bloqueos. Hang pnpm + electron-builder mitigado (paquete fuera de workspace).
 
 ---
 
 # Próxima tarea
 
-- Fase 2 · Tarea 4 — UI5 CLI v4: bootstrap de la app SAPUI5 (Component.js, routing, models, services) + Electron vite-plugin-electron + electron-builder (IPC). Tras ello, Fase 3 CI/CD y observabilidad.
+- Fase 3 — CI/CD completo (workflow `quality` + dependabot alerts, CodeQL evaluación), observabilidad (OTel Pino + health checks), y contratos Gmail/Outlook/IMAP (Pact) — según ARCHITECTURE_DECISIONS §5 y Backlog Media.
 
 ---
 
 # Commits pendientes
 
-- PR (feature/fase2-db-drizzle-sqlcipher, merge pendiente a `develop`): ADR-004 + capa de BD; baseline previo 40 tests.
-- PR (feature/fase2-ai-runtime, en curso): ADR-005 + runtime IA embebido (llamafile + Ollama/LM Studio + ModelManager + factory); baseline verde (72 tests, cobertura 91 % statements / 81.3 % branches, lint/typecheck/build OK).
+- Rama `develop` 10 commits delante de `origin/main` (PRs #3-#6 mergeados: Fase 2 completa). PR pendiente `feature/fase2-ui-electron` → `develop` (ADR-006 + UI5 bootstrap + vite-plugin-electron + IPC + fixes lint/format): baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK).
+- Tras merge a `develop`, PR `develop` → `main` para sincronizar Fase 2 (flujo `main` protegida, `AGENTS.md:27`).
 
 ---
 
@@ -155,5 +156,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - ADR-003 (2026-08-20): puertos y errores de dominio en `packages/core`; adaptadores fuera del núcleo.
 - ADR-004 (2026-08-20): capa de BD — Drizzle + libSQL + migraciones + SecretStore + cifrado; `better-sqlite3` pospuesto por toolchain nativa.
 - ADR-005 (2026-08-20): runtime embebido llamafile (binario único) + Ollama/LM Studio + ModelManagerPort; factory multi-runtime con DI.
+- ADR-006 (2026-08-22): bootstrap UI5 CLI v4 (OpenUI5 1.133.0) + vite-plugin-electron (HMR) + electron-builder + IPC tipado; `core.autocrlf` y `pnpm + electron-builder` hang documentados.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
