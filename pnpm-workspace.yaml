@@ -3,4 +3,6 @@ packages:
   - 'tools/*'
 
 allowBuilds:
+  better-sqlite3: false
   electron: true
+  esbuild: true

@@ -16,10 +16,14 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@email-ia/shared": "workspace:*"
+    "@email-ia/core": "workspace:*",
+    "@email-ia/shared": "workspace:*",
+    "@libsql/client": "^0.17.4",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@email-ia/tsconfig": "workspace:*",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5.0.0"
   }
 }

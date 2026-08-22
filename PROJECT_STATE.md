@@ -4,7 +4,7 @@
 
 Fase: 2 — Arquitectura base (EN CURSO)
 
-Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: hexágono base en `packages/core` (puerto `AIProviderPort` + errores de dominio `AppError`/`ProviderError`, ADR-003) con `ai-provider` convertido en adaptador puro. Siguiente: capa de BD (Drizzle + SQLCipher).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones iniciales + SQLCipher (via libSQL encryptionKey) + `SecretStorePort` en Core (ADR-004, 2026-08-20). Siguiente: Runtime IA embebido (llamafile) + adaptadores.
 
 Última actualización: 2026-08-20
 
@@ -23,7 +23,7 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 
 - [x] Hexágono base materializado en `packages/core`: puerto `AIProviderPort` + tipos (chat, embed, listModels, pullModel) en `src/ports/`, errores de dominio `AppError` (estrategia unificada: code/status/details) y `ProviderError` en `src/errors/` (ADR-003, 2026-08-20)
 - [x] `packages/ai-provider` convertido en adaptador del puerto (`OpenAICompatibleProvider` implementa `AIProviderPort` del Core, lanza `ProviderError` del Core, re-exporta contrato por compatibilidad; dep `@email-ia/shared` no usada eliminada)
-- [ ] Resto de puertos del dominio (correo, persistencia) y mapeo HTTP de `AppError` — Fase 2+
+- [x] Puertos de persistencia en `packages/core` (ADR-004, 2026-08-20): `EmailRepositoryPort`/`ContactRepositoryPort` + `SecretStorePort` y `DbError` (extiende `AppError` con `code DB_ERROR`); exportados desde `@email-ia/core`
 
 ## Frontend
 
@@ -46,7 +46,8 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 ## Base de datos
 
 - [x] SQLite + Drizzle/Drizzle Kit + SQLCipher decididos
-- [ ] Migraciones iniciales y capa de BD (pendiente Fase 2)
+- [x] Capa de BD materializada (ADR-004, 2026-08-20): `drizzle-orm` + `@libsql/client` (file + `:memory:`, `encryptionKey` para cifrado en reposo; evolución a `better-sqlite3-multiple-ciphers` sin cambiar esquema) + `drizzle-kit` + esquema base `contacts`/`emails` en `packages/db/src/schema/` + primera migración `0001_initial.sql` + helper `migrate()` + `drizzle.config.ts` (raíz y `packages/db`)
+- [x] Adaptadores `DrizzleContactRepository`/`DrizzleEmailRepository` implementan puertos del Core en `packages/db/src/repositories/`; `EnvSecretStore` + `KeytarSecretStore` + `createSecretStore()` en `packages/db/src/secret-store/`; cliente centralizado `createDb()`/`createInMemoryDb()` resuelve `DATABASE_URL`/`DATABASE_ENCRYPTION_KEY` o `SecretStorePort` (`email-ia/db-encryption-key`); `DbError` unificado
 
 ## Integraciones
 
@@ -81,7 +82,7 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 ## Alta
 
 - [x] Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider` (Tarea 2.1, ADR-003)
-- Fase 2 — Capa de BD (Drizzle + migraciones + SQLCipher + almacén seguro del SO)
+- [x] Fase 2 — Capa de BD (Drizzle + libSQL + migraciones + SQLCipher + almacén seguro del SO, ADR-004, 2026-08-20)
 - Fase 2 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio
 - Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
 - Fase 2 — Electron: vite-plugin-electron + electron-builder
@@ -111,6 +112,7 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 - pnpm 11: los ajustes de build de dependencias ya no se leen del campo `pnpm` de package.json ni de `onlyBuiltDependencies`; usan `allowBuilds` en `pnpm-workspace.yaml` (mapa nombre → booleano). Sin él, el postinstall de electron (descarga del binario) se bloquea con `ERR_PNPM_IGNORED_BUILDS`.
 - Windows + `core.autocrlf=true` (2026-08-20): los checkouts salen con CRLF y Prettier (default `endOfLine: lf`) los marca como no formateados → `format:check` fallaba en 4 archivos con contenido correcto. Fix: `.gitattributes` (`text=auto` + `eol=lf` en código/documentación).
 - `PROJECT_STATE.md` (2026-08-20): la sección "Commits pendientes" listaba el commit del spike ya mergeado; se corrigió. Además `develop` quedó 1 commit detrás de `main` tras el PR #1 (branch protection, merge directo a main): sincronizada vía PR #2.
+- Fase 2 DB (2026-08-20): `better-sqlite3@13.0.3` requiere VS Build Tools (gyp ERR! Could not find any Visual Studio installation) en Windows Node 22; se adoptó `@libsql/client` + `drizzle-orm/libsql` para evitar compilación nativa manteniendo `encryptionKey` (cifrado libSQL) y compatibilidad futura con `better-sqlite3-multiple-ciphers` (cambio solo en `packages/db/src/client/connection.ts`). `drizzle-kit` trae `better-sqlite3` opcional: bloqueado en `allowBuilds:false` + `esbuild:true` para `pnpm approve-builds`.
 
 ---
 
@@ -133,14 +135,13 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 
 # Próxima tarea
 
-- Fase 2 · Tarea 2 — Capa de BD: Drizzle + migraciones iniciales + SQLCipher + claves en el almacén seguro del SO (empezar por el esquema base de emails/contactos y el puerto de persistencia del Core).
+- Fase 2 · Tarea 3 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio (configurables vía `AIProviderPort`); verificar binario único portable sin instalación.
 
 ---
 
 # Commits pendientes
 
-- PR #3 (mergable cuando CI pase): `chore: forzar fin de linea LF con gitattributes` — `.gitattributes` para estabilizar `format:check` en Windows.
-- PR (feature/fase2-core-hexagonal, en curso): ADR-003 + hexágono base en `packages/core` (AIProviderPort, AppError, ProviderError) + `ai-provider` como adaptador.
+- PR (feature/fase2-db-drizzle-sqlcipher, en curso): ADR-004 + capa de BD (Drizzle + libSQL + migraciones 0001 + `SecretStorePort`/`DbError` en Core + adaptadores `Drizzle*Repository` + `EnvSecretStore`/`KeytarSecretStore` + `createDb`/`migrate`); baseline verde (40 tests, cobertura 91.5 % statements / 80.7 % branches).
 
 ---
 
@@ -148,5 +149,6 @@ Estado: Fase 1 cerrada (fundación + spikes verificados). Tarea 2.1 completada: 
 
 - Decisiones D1-D10 resueltas (2026-08-19). Detalle en ARCHITECTURE_DECISIONS.md y ADR-001/ADR-002.
 - ADR-003 (2026-08-20): puertos y errores de dominio en `packages/core`; adaptadores fuera del núcleo.
+- ADR-004 (2026-08-20): capa de BD — Drizzle + libSQL + migraciones + SecretStore + cifrado; `better-sqlite3` pospuesto por toolchain nativa.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
