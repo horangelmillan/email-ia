@@ -30,4 +30,16 @@ describe('backend', () => {
   it('makeProvider devuelve undefined con baseUrl vacía', () => {
     expect(makeProvider('')).toBeUndefined();
   });
+
+  it('makeProvider propaga errores no ProviderError', async () => {
+    const mod = await import('@email-ia/ai-provider');
+    const spy = vi.spyOn(mod, 'createAIProvider').mockImplementation(() => {
+      throw new Error('generic');
+    });
+    try {
+      expect(() => makeProvider('http://example.com')).toThrow('generic');
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
