@@ -1,3 +1,4 @@
+import { ProviderError } from '@email-ia/core';
 import type {
   AIProviderConfig,
   AIProviderPort,
@@ -6,17 +7,7 @@ import type {
   ChatResponse,
   EmbeddingResult,
   ModelInfo,
-} from './types.js';
-
-export class ProviderError extends Error {
-  constructor(
-    message: string,
-    readonly status?: number,
-  ) {
-    super(message);
-    this.name = 'ProviderError';
-  }
-}
+} from '@email-ia/core';
 
 export type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 

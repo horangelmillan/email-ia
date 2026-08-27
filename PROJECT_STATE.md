@@ -2,11 +2,11 @@
 
 ## Estado General
 
-Fase: 1 — Fundación técnica (EN CURSO)
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B pendiente
 
-Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ Web) completados y verificados (lint, typecheck, build, test, smoke en verde). Siguiente: Fase 2 — arquitectura base.
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Baseline verde (72 tests, cobertura 91.05 % statements / 81.34 % branches, lint/typecheck/build/format:check OK).
 
-Última actualización: 2026-08-19
+Última actualización: 2026-08-26
 
 ---
 
@@ -19,28 +19,37 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - [x] Scaffolding del paquete `backend` (workspace @email-ia/backend)
 - [ ] Lógica real del backend (Express, adapters) — Fase 2
 
+## Core
+
+- [x] Hexágono base materializado en `packages/core`: puerto `AIProviderPort` + tipos (chat, embed, listModels, pullModel) en `src/ports/`, errores de dominio `AppError` (estrategia unificada: code/status/details) y `ProviderError` en `src/errors/` (ADR-003, 2026-08-20)
+- [x] `packages/ai-provider` convertido en adaptador del puerto (`OpenAICompatibleProvider` implementa `AIProviderPort` del Core, lanza `ProviderError` del Core, re-exporta contrato por compatibilidad; dep `@email-ia/shared` no usada eliminada)
+- [x] Puertos de persistencia en `packages/core` (ADR-004, 2026-08-20): `EmailRepositoryPort`/`ContactRepositoryPort` + `SecretStorePort` y `DbError` (extiende `AppError` con `code DB_ERROR`); exportados desde `@email-ia/core`
+- [x] `ModelManagerPort` en `packages/core` (ADR-005, 2026-08-20): `LocalModelInfo`/`PullProgress` + `listLocalModels`/`pullModel`/`removeModel`/`getModelPath`; adaptador `FilesystemModelManager` en `packages/ai-provider` (DI fs/fetch/path, streaming + progreso)
+
 ## Frontend
 
 - [x] SAPUI5 (MVC) + UI5 CLI v4 decidido
 - [x] UI Component Playground + regresión visual (Playwright) decididos
-- [x] Scaffolding del paquete `frontend` (placeholder; build/typecheck echo)
-- [ ] Bootstrap de la app SAPUI5 con UI5 CLI v4 (routing, models, services) — Fase 2
+- [x] Scaffolding del paquete `frontend` (placeholder; build/typecheck echo) — Fase 1
+- [x] Bootstrap UI5 CLI v4 completado (ADR-006, 2026-08-22): `ui5.yaml` (specVersion 4.0, OpenUI5 1.133.0), `webapp/Component.js`, `manifest.json` (routing `home`/`inbox`, modelos `i18n`/`app`), `view/App.view.xml` + `Home`/`Inbox`, `controller/App`/`Home`/`Inbox`, `model/models.js` (app/device), `service/EmailService.js` (healthCheck placeholder), `i18n/*.properties` (en/es), `css/style.css`; build `ui5 build --all` OK (7 proyectos, 30-38 s), `ui5 serve` OK
 
 ## IA
 
 - [x] AI Provider desacoplado (multi-runtime: embebido por defecto, Ollama, LM Studio, OpenAI)
 - [x] Gestor de modelos, RAG, prompts versionados con golden dataset, offline-first, SQLCipher decididos
-- [x] Puerto hexagonal AIProviderPort materializado en `packages/ai-provider`: `AIProviderPort` (chat, embed, listModels, pullModel) + adaptador `OpenAICompatibleProvider` con DI de fetch (tests sin red), normalización de baseUrl (añade `/v1`), timeout 30 s y `ProviderError`. `pullModel` no soportado en OpenAI-compat (pendiente runtime embebido en Fase 2)
+- [x] Puerto hexagonal AIProviderPort en `packages/core` (ADR-003, 2026-08-20): `AIProviderPort` (chat, embed, listModels, pullModel) + adaptador `OpenAICompatibleProvider` en `packages/ai-provider` con DI de fetch (tests sin red), normalización de baseUrl (añade `/v1`), timeout 30 s y `ProviderError` (ahora en el Core). `pullModel` no soportado en OpenAI-compat (pendiente runtime embebido en Fase 2)
+- [x] Runtime IA embebido materializado (ADR-005, 2026-08-20): `OllamaProvider` (`POST /api/pull`, NDJSON, normaliza `/v1`→`/api`, timeout 300 s), `LlamafileRuntime` (binaryPath/modelPath/host/port/args, DI spawn/fetch/fs, `getServerUrl`/`healthCheck`/`start`/`stop` con poll 5 s), `FilesystemModelManager` (DI fs/fetch) y factory `createAIProvider({provider, baseUrl, llamafile}, fetchImpl, {llamafileRuntime})` con defaults `ollama:11434/lmstudio:1234/llamafile:8080`; 72 tests, cobertura 91 %/81.3 %
 
 ## Electron
 
 - [x] Spike validado: el Core (`@email-ia/core`, `@email-ia/backend`, `@email-ia/shared`) carga en el proceso main de Electron (sonda `--smoke` OK). Preload CJS (`preload.cjs`) con `sandbox: true` + contextIsolation
-- [ ] Fase 2: vite-plugin-electron (HMR) + electron-builder (empaquetado, copia de preload al dist) + IPC renderer ↔ main
+- [x] Fase 2 completada (ADR-006, 2026-08-22): `vite@6.3.5` + `vite-plugin-electron@0.28.8` (HMR) + `vite.config.ts` (main `src/main.ts` → `dist/main.js`, preload `src/preload.ts` → `dist/preload.mjs` + `dist-electron/preload.mjs`, renderer `dist/index.html`), `electron-builder.yml` (appId `com.emailia.app`, files `dist/**/*` + `preload.cjs`/`index.html`), IPC tipado (`ipc.ts` + `preload.ts`/`preload.cjs` expone `ping`/`getVersions` vía `ipcMain.handle`/`ipcRenderer.invoke`), `pnpm --filter @email-ia/electron dev/build:vite/package` OK; `pnpm build` (tsc) + `pnpm typecheck` verdes; empaquetado vía `npx electron-builder` (paquete no instalado en workspace por hang pnpm en Windows — ver Hallazgos)
 
 ## Base de datos
 
 - [x] SQLite + Drizzle/Drizzle Kit + SQLCipher decididos
-- [ ] Migraciones iniciales y capa de BD (pendiente Fase 2)
+- [x] Capa de BD materializada (ADR-004, 2026-08-20): `drizzle-orm` + `@libsql/client` (file + `:memory:`, `encryptionKey` para cifrado en reposo; evolución a `better-sqlite3-multiple-ciphers` sin cambiar esquema) + `drizzle-kit` + esquema base `contacts`/`emails` en `packages/db/src/schema/` + primera migración `0001_initial.sql` + helper `migrate()` + `drizzle.config.ts` (raíz y `packages/db`)
+- [x] Adaptadores `DrizzleContactRepository`/`DrizzleEmailRepository` implementan puertos del Core en `packages/db/src/repositories/`; `EnvSecretStore` + `KeytarSecretStore` + `createSecretStore()` en `packages/db/src/secret-store/`; cliente centralizado `createDb()`/`createInMemoryDb()` resuelve `DATABASE_URL`/`DATABASE_ENCRYPTION_KEY` o `SecretStorePort` (`email-ia/db-encryption-key`); `DbError` unificado
 
 ## Integraciones
 
@@ -66,7 +75,7 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - [x] CD: solo local por ahora (sin destino de despliegue)
 - [x] Workflow CI inicial (`.github/workflows/ci.yml`) + dependabot.yml creados
 - [x] Remoto activo y branch protection en `main` (2026-08-20): repo público `horangelmillan/email-ia` (plan Free: protección de ramas solo en repos públicos), `develop` creado desde `main`, reglas: PR obligatorio + check `quality` + enforce admins + sin force push/deleción. `required_approving_review_count = 0` (repo en solitario: GitHub no permite auto-aprobación del propio PR; subir a ≥1 cuando haya más colaboradores)
-- [ ] Evaluar CodeQL (requiere revisión de cuota Actions) y activar Dependabot alerts/security updates
+- [x] Fase 3A CI/CD completo (ADR-007, 2026-08-26): `ci.yml` endurecido (`concurrency` cancel-in-progress, `permissions: contents:read`, `timeout 15 min`, pasos `lint → format:check → typecheck → build → test:coverage threshold 80 % → gitleaks`), `.github/workflows/codeql.yml` (`javascript-typescript`, `security-and-quality`, push/PR + schedule semanal), `develop` protegido (mismo `quality` gate que `main` vía `gh api PUT` — 404 resuelto), `dependabot.yml` verificado (`pnpm` + `github-actions` weekly, alerts activables en Settings)
 
 ---
 
@@ -74,16 +83,16 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 
 ## Alta
 
-- Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider`
-- Fase 2 — Runtime IA embebido (llamafile recomendado tras el spike) + adaptadores Ollama/LM Studio
-- Fase 2 — Capa de BD (Drizzle + migraciones + SQLCipher + almacén seguro del SO)
-- Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services
-- Fase 2 — Electron: vite-plugin-electron + electron-builder
+- [x] Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core`, AIProviderPort en `packages/ai-provider` (Tarea 2.1, ADR-003)
+- [x] Fase 2 — Capa de BD (Drizzle + libSQL + migraciones + SQLCipher + almacén seguro del SO, ADR-004, 2026-08-20)
+- [x] Fase 2 — Runtime IA embebido (llamafile + adaptadores Ollama/LM Studio + ModelManagerPort, ADR-005, 2026-08-20)
+- [x] Fase 2 — UI5 CLI v4: bootstrap de la app SAPUI5, routing, models, services (ADR-006, 2026-08-22)
+- [x] Fase 2 — Electron: vite-plugin-electron + electron-builder + IPC (ADR-006, 2026-08-22)
 
 ## Media
 
-- Fase 3 — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection
-- Fase 3 — Observabilidad: instrumentación OTel activable por configuración, health checks
+- [x] Fase 3A — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection (ADR-007, 2026-08-26)
+- Fase 3B — Observabilidad: instrumentación OTel activable por configuración, health checks
 - Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
 
 ## Baja
@@ -103,6 +112,12 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 - Spike IA (2026-08-19): **node-llama-cpp** solo es compatible con el proceso main de Electron (bindings nativos, fallback build from source); **llamafile** es un binario único portable con servidor OpenAI-compatible sin instalación → runtime embebido recomendado para Fase 2. LM Studio (`http://localhost:1234/v1`) y Ollama (`http://localhost:11434/v1`) exponen la misma API OpenAI-compatible (`/v1/chat/completions`, `/v1/embeddings`, `/v1/models`).
 - Spike Electron (2026-08-19): los preloads de Electron **deben ser CommonJS** (`.cjs`) con `sandbox: true` (ESM no soportado en preload sandboxed); los paquetes del Core se resuelven vía workspaces pnpm (dist previo con `pnpm build`).
 - pnpm 11: los ajustes de build de dependencias ya no se leen del campo `pnpm` de package.json ni de `onlyBuiltDependencies`; usan `allowBuilds` en `pnpm-workspace.yaml` (mapa nombre → booleano). Sin él, el postinstall de electron (descarga del binario) se bloquea con `ERR_PNPM_IGNORED_BUILDS`.
+- Windows + `core.autocrlf=true` (2026-08-20): los checkouts salen con CRLF y Prettier (default `endOfLine: lf`) los marca como no formateados → `format:check` fallaba en 4 archivos con contenido correcto. Fix: `.gitattributes` (`text=auto` + `eol=lf` en código/documentación).
+- `PROJECT_STATE.md` (2026-08-20): la sección "Commits pendientes" listaba el commit del spike ya mergeado; se corrigió. Además `develop` quedó 1 commit detrás de `main` tras el PR #1 (branch protection, merge directo a main): sincronizada vía PR #2.
+- Fase 2 DB (2026-08-20): `better-sqlite3@13.0.3` requiere VS Build Tools (gyp ERR! Could not find any Visual Studio installation) en Windows Node 22; se adoptó `@libsql/client` + `drizzle-orm/libsql` para evitar compilación nativa manteniendo `encryptionKey` (cifrado libSQL) y compatibilidad futura con `better-sqlite3-multiple-ciphers` (cambio solo en `packages/db/src/client/connection.ts`). `drizzle-kit` trae `better-sqlite3` opcional: bloqueado en `allowBuilds:false` + `esbuild:true` para `pnpm approve-builds`.
+- Fase 2 IA (2026-08-20): `exactOptionalPropertyTypes:true` exige `?: T | undefined` explícito y `Required` con unión no propaga; `LlamafileRuntimeConfig`/`FactoryDeps` requirieron `host?: string | undefined` + spread condicional `...(host!==undefined?{host}:{})` para no pasar `undefined` como valor; `FilesystemModelManager` streaming bifurca `body.getReader` vs `arrayBuffer` fallback (dos ramas cubiertas con tests DI fs/fetch).
+- Fase 2 UI+Electron (2026-08-22): `core.autocrlf=true` recayó tras `pnpm add` (46 files con CRLF) → fix `git config core.autocrlf false` + `git add --renormalize .` + `pnpm format` (Prettier `eol=lf`). UI5 CLI v4 `ui5.yaml` exige `specVersion 4.0` + `framework OpenUI5 1.133.0`; `manifest.json` warning `fallbackLocale 'en'` sin `i18n_en.properties` → crear `i18n_en.properties`/`i18n_es.properties`. `vite-plugin-electron@0.28.8` requiere `vite@6` (no 8) y `preload` output por defecto `dist-electron/` → configurar `vite.build.outDir='dist'` para unificar; `resolvePreloadPath()` con `existsSync` para fallback `preload.mjs` vs `preload.cjs`. `electron-builder@25.1.8` en workspace causa hang infinito de `pnpm --filter`/`pnpm -r` en Windows (pnpm store scan >120 s con 25.1.8 deps) → retirado de `@email-ia/electron/package.json`, empaquetado vía `npx --yes electron-builder` sin instalar en workspace; `pnpm build/typecheck/test` recuperados (exit 0). ESLint `dist-electron/preload.mjs` con `require` ignorado vía `eslint.config.js: ignores dist-electron/release` y `.prettierignore`.
+- Fase 3A CI/CD (2026-08-26): `ci.yml` sin `format:check` omitía gate de `LF` (`.gitattributes eol=lf`) y sin `concurrency` malgastaba minutos Actions → añadidos `format:check`, `concurrency: ci-${{ github.ref }} cancel-in-progress`, `permissions: contents:read`, `timeout 15 min`, step `Test with coverage (threshold 80%)`. `develop` no estaba protegido (404 `gh api branches/develop/protection`) pese a `PROJECT_STATE.md:77` — corregido vía `gh api PUT` con `strict:true, contexts:[quality], enforce_admins:true`. `codeql.yml` añadido (`javascript-typescript`, `security-and-quality`, push/PR + cron semanal) con `security-events:write` solo en job; coste ~3 min/run en plan Free. `ADR-007` registra decisión. `pnpm format` corrige `ADR-007.md` para `format:check` verde.
 
 ---
 
@@ -119,24 +134,30 @@ Estado: Scaffolding del monorepo y spike técnico (AI Provider + Electron ↔ We
 
 # Bloqueadores
 
-- Ninguno. La definición está completa y no impide iniciar la Fase 1.
+- Ninguno. Fase 3A completada sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada.
 
 ---
 
 # Próxima tarea
 
-- Fase 2 — Arquitectura base: hexagonal + Shared Kernel en `packages/core` (puertos/adaptadores), capa de BD (Drizzle + SQLCipher), runtime IA embebido (llamafile), bootstrap UI5 CLI v4 y Electron con vite-plugin-electron.
+- Fase 3B — Observabilidad: instrumentación OTel activable por configuración (Pino + OTel SDK, export OTLP opcional deshabilitado por defecto) + health checks Express, según ARCHITECTURE_DECISIONS §3.5 y ADR-002. Luego Fase 4 — Contratos Gmail/Outlook/IMAP (Pact) + adaptadores.
 
 ---
 
 # Commits pendientes
 
-- Commit del spike (Fase 1): `feat: spike ai-provider y electron` (provider OpenAI-compatible + tests, scaffold electron con smoke, allowBuilds pnpm 11, doc).
+- Rama `feature/fase2-ui-electron` 1 commit nuevo delante de `origin/feature/fase2-ui-electron` (ADR-007 + `ci.yml` endurecido + `codeql.yml` + `develop` branch protection + `PROJECT_STATE.md` Fase 3A): baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK). Acumula 2 commits sobre `origin/develop` (ADR-006 + ADR-007).
+- Tras merge `feature/fase2-ui-electron` → `develop`, PR `develop` → `main` para sincronizar Fase 2 + 3A (flujo `main` protegida, `AGENTS.md:27`).
 
 ---
 
 # Notas
 
 - Decisiones D1-D10 resueltas (2026-08-19). Detalle en ARCHITECTURE_DECISIONS.md y ADR-001/ADR-002.
+- ADR-003 (2026-08-20): puertos y errores de dominio en `packages/core`; adaptadores fuera del núcleo.
+- ADR-004 (2026-08-20): capa de BD — Drizzle + libSQL + migraciones + SecretStore + cifrado; `better-sqlite3` pospuesto por toolchain nativa.
+- ADR-005 (2026-08-20): runtime embebido llamafile (binario único) + Ollama/LM Studio + ModelManagerPort; factory multi-runtime con DI.
+- ADR-006 (2026-08-22): bootstrap UI5 CLI v4 (OpenUI5 1.133.0) + vite-plugin-electron (HMR) + electron-builder + IPC tipado; `core.autocrlf` y `pnpm + electron-builder` hang documentados.
+- ADR-007 (2026-08-26): CI/CD completo — `ci.yml` con `format:check` + `concurrency` + `timeout`, `codeql.yml` JS/TS + `develop` protegido; `dependabot.yml` verificado.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).

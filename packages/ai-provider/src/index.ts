@@ -1,3 +1,16 @@
+export { OpenAICompatibleProvider, type FetchLike } from './openai-compatible-provider.js';
+export { OllamaProvider } from './ollama-provider.js';
+export { FilesystemModelManager } from './filesystem-model-manager.js';
+export { LlamafileRuntime } from './llamafile-runtime.js';
+export {
+  createAIProvider,
+  DEFAULT_BASE_URL,
+  resolveBaseUrl,
+  type AIProviderKind,
+  type CreateAIProviderOptions,
+  type FactoryDeps,
+} from './factory.js';
+export { ProviderError } from '@email-ia/core';
 export type {
   AIProviderConfig,
   AIProviderPort,
@@ -7,13 +20,8 @@ export type {
   ChatRole,
   EmbeddingResult,
   ModelInfo,
-} from './types.js';
-export { OpenAICompatibleProvider, ProviderError } from './openai-compatible-provider.js';
-export type { FetchLike } from './openai-compatible-provider.js';
-
-import type { AIProviderConfig, AIProviderPort } from './types.js';
-import { OpenAICompatibleProvider, type FetchLike } from './openai-compatible-provider.js';
-
-export function createAIProvider(config: AIProviderConfig, fetchImpl?: FetchLike): AIProviderPort {
-  return new OpenAICompatibleProvider(config, fetchImpl);
-}
+  LocalModelInfo,
+  ModelManagerPort,
+  PullProgress,
+  PullProgressCallback,
+} from '@email-ia/core';

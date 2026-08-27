@@ -1,0 +1,19 @@
+<mvc:View
+  controllerName="com.emailia.frontend.controller.Inbox"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+>
+  <Page
+    id="inboxPage"
+    title="{i18n>inboxTitle}"
+    showNavButton="true"
+    navButtonPress=".onNavBack"
+  >
+    <content>
+      <List headerText="{i18n>inboxHeader}" noDataText="{i18n>inboxEmpty}">
+        <StandardListItem title="{i18n>inboxPlaceholder}" />
+      </List>
+      <ObjectStatus text="Unread: {app>/inboxSummary/unread}" class="sapUiSmallMargin" />
+    </content>
+  </Page>
+</mvc:View>

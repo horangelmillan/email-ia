@@ -15,18 +15,19 @@ Aplicación Full Stack Desktop First (Electron) para gestión inteligente de cor
 
 ```
 packages/
-  core/          # Shared Kernel + Domain (núcleo hexagonal)
-  backend/       # Express + adapters (HTTP, DB, Email, AI)
-  frontend/      # App SAPUI5 (pendiente Fase 2)
-  electron/      # Main + Preload (pendiente Fase 2)
-  ai-provider/   # Puerto hexagonal AI + adapters
-  db/            # Capa de BD (Drizzle + migraciones)
-  shared/        # Types, utils, constantes, schemas
-tools/
-  eslint-config/ # Config ESLint compartida
-  tsconfig/      # Config TypeScript compartida
-  prettier-config/
-docs/adr/        # Decisiones arquitectónicas (ADR-001, ADR-002)
+   core/          # Núcleo hexagonal: puertos + errores (Shared Kernel, ModelManagerPort)
+   backend/       # Express + adapters (HTTP, DB, Email, AI)
+   frontend/      # App SAPUI5 (UI5 CLI v4, Component, routing, models, services, i18n)
+   electron/      # Main + Preload + IPC (vite-plugin-electron HMR, electron-builder)
+   ai-provider/   # Adaptadores AI (OpenAI-compatible, Ollama, LlamafileRuntime, FilesystemModelManager, factory)
+   db/            # Capa de BD (Drizzle + libSQL + migraciones 0001 + SecretStore)
+   shared/        # Types, utils, constantes, schemas
+ tools/
+   eslint-config/ # Config ESLint compartida
+   tsconfig/      # Config TypeScript compartida
+   prettier-config/
+ docs/adr/        # Decisiones arquitectónicas (ADR-001 .. ADR-006)
+ drizzle.config.ts # Drizzle Kit (raíz + packages/db/drizzle.config.ts)
 ```
 
 ## Requisitos

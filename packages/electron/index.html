@@ -7,10 +7,17 @@
   <body>
     <h1>Email IA</h1>
     <p id="status">Electron spike en marcha</p>
+    <p id="ipc"></p>
     <script>
       const status = document.getElementById('status');
+      const ipc = document.getElementById('ipc');
       if (window.emailIa) {
         status.textContent = `Preload OK: ${window.emailIa.probe}`;
+        if (window.emailIa.ping) {
+          window.emailIa.ping().then((res) => {
+            ipc.textContent = `IPC ping: ${res}`;
+          });
+        }
       }
     </script>
   </body>
