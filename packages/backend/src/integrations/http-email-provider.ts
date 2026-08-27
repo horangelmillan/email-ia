@@ -12,7 +12,9 @@ export type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Respo
 const REQUEST_TIMEOUT_MS = 30_000;
 
 function normalizeBaseUrl(baseUrl: string): string {
-  const trimmed = baseUrl.replace(/\/+$/, '');
+  let end = baseUrl.length;
+  while (end > 0 && baseUrl[end - 1] === '/') end--;
+  const trimmed = baseUrl.slice(0, end);
   if (!trimmed) throw new IntegrationError('baseUrl es obligatoria', 400);
   return trimmed;
 }
