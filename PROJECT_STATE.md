@@ -2,11 +2,11 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3 pendiente
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B pendiente
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Baseline verde (72 tests, cobertura 91.05 % statements / 81.34 % branches, lint/typecheck/build/format:check OK).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Baseline verde (72 tests, cobertura 91.05 % statements / 81.34 % branches, lint/typecheck/build/format:check OK).
 
-Última actualización: 2026-08-22
+Última actualización: 2026-08-26
 
 ---
 
@@ -75,7 +75,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] CD: solo local por ahora (sin destino de despliegue)
 - [x] Workflow CI inicial (`.github/workflows/ci.yml`) + dependabot.yml creados
 - [x] Remoto activo y branch protection en `main` (2026-08-20): repo público `horangelmillan/email-ia` (plan Free: protección de ramas solo en repos públicos), `develop` creado desde `main`, reglas: PR obligatorio + check `quality` + enforce admins + sin force push/deleción. `required_approving_review_count = 0` (repo en solitario: GitHub no permite auto-aprobación del propio PR; subir a ≥1 cuando haya más colaboradores)
-- [ ] Evaluar CodeQL (requiere revisión de cuota Actions) y activar Dependabot alerts/security updates
+- [x] Fase 3A CI/CD completo (ADR-007, 2026-08-26): `ci.yml` endurecido (`concurrency` cancel-in-progress, `permissions: contents:read`, `timeout 15 min`, pasos `lint → format:check → typecheck → build → test:coverage threshold 80 % → gitleaks`), `.github/workflows/codeql.yml` (`javascript-typescript`, `security-and-quality`, push/PR + schedule semanal), `develop` protegido (mismo `quality` gate que `main` vía `gh api PUT` — 404 resuelto), `dependabot.yml` verificado (`pnpm` + `github-actions` weekly, alerts activables en Settings)
 
 ---
 
@@ -91,8 +91,8 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 ## Media
 
-- Fase 3 — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection
-- Fase 3 — Observabilidad: instrumentación OTel activable por configuración, health checks
+- [x] Fase 3A — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection (ADR-007, 2026-08-26)
+- Fase 3B — Observabilidad: instrumentación OTel activable por configuración, health checks
 - Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
 
 ## Baja
@@ -117,6 +117,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 2 DB (2026-08-20): `better-sqlite3@13.0.3` requiere VS Build Tools (gyp ERR! Could not find any Visual Studio installation) en Windows Node 22; se adoptó `@libsql/client` + `drizzle-orm/libsql` para evitar compilación nativa manteniendo `encryptionKey` (cifrado libSQL) y compatibilidad futura con `better-sqlite3-multiple-ciphers` (cambio solo en `packages/db/src/client/connection.ts`). `drizzle-kit` trae `better-sqlite3` opcional: bloqueado en `allowBuilds:false` + `esbuild:true` para `pnpm approve-builds`.
 - Fase 2 IA (2026-08-20): `exactOptionalPropertyTypes:true` exige `?: T | undefined` explícito y `Required` con unión no propaga; `LlamafileRuntimeConfig`/`FactoryDeps` requirieron `host?: string | undefined` + spread condicional `...(host!==undefined?{host}:{})` para no pasar `undefined` como valor; `FilesystemModelManager` streaming bifurca `body.getReader` vs `arrayBuffer` fallback (dos ramas cubiertas con tests DI fs/fetch).
 - Fase 2 UI+Electron (2026-08-22): `core.autocrlf=true` recayó tras `pnpm add` (46 files con CRLF) → fix `git config core.autocrlf false` + `git add --renormalize .` + `pnpm format` (Prettier `eol=lf`). UI5 CLI v4 `ui5.yaml` exige `specVersion 4.0` + `framework OpenUI5 1.133.0`; `manifest.json` warning `fallbackLocale 'en'` sin `i18n_en.properties` → crear `i18n_en.properties`/`i18n_es.properties`. `vite-plugin-electron@0.28.8` requiere `vite@6` (no 8) y `preload` output por defecto `dist-electron/` → configurar `vite.build.outDir='dist'` para unificar; `resolvePreloadPath()` con `existsSync` para fallback `preload.mjs` vs `preload.cjs`. `electron-builder@25.1.8` en workspace causa hang infinito de `pnpm --filter`/`pnpm -r` en Windows (pnpm store scan >120 s con 25.1.8 deps) → retirado de `@email-ia/electron/package.json`, empaquetado vía `npx --yes electron-builder` sin instalar en workspace; `pnpm build/typecheck/test` recuperados (exit 0). ESLint `dist-electron/preload.mjs` con `require` ignorado vía `eslint.config.js: ignores dist-electron/release` y `.prettierignore`.
+- Fase 3A CI/CD (2026-08-26): `ci.yml` sin `format:check` omitía gate de `LF` (`.gitattributes eol=lf`) y sin `concurrency` malgastaba minutos Actions → añadidos `format:check`, `concurrency: ci-${{ github.ref }} cancel-in-progress`, `permissions: contents:read`, `timeout 15 min`, step `Test with coverage (threshold 80%)`. `develop` no estaba protegido (404 `gh api branches/develop/protection`) pese a `PROJECT_STATE.md:77` — corregido vía `gh api PUT` con `strict:true, contexts:[quality], enforce_admins:true`. `codeql.yml` añadido (`javascript-typescript`, `security-and-quality`, push/PR + cron semanal) con `security-events:write` solo en job; coste ~3 min/run en plan Free. `ADR-007` registra decisión. `pnpm format` corrige `ADR-007.md` para `format:check` verde.
 
 ---
 
@@ -133,20 +134,20 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno. Fase 2 completada sin bloqueos. Hang pnpm + electron-builder mitigado (paquete fuera de workspace).
+- Ninguno. Fase 3A completada sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada.
 
 ---
 
 # Próxima tarea
 
-- Fase 3 — CI/CD completo (workflow `quality` + dependabot alerts, CodeQL evaluación), observabilidad (OTel Pino + health checks), y contratos Gmail/Outlook/IMAP (Pact) — según ARCHITECTURE_DECISIONS §5 y Backlog Media.
+- Fase 3B — Observabilidad: instrumentación OTel activable por configuración (Pino + OTel SDK, export OTLP opcional deshabilitado por defecto) + health checks Express, según ARCHITECTURE_DECISIONS §3.5 y ADR-002. Luego Fase 4 — Contratos Gmail/Outlook/IMAP (Pact) + adaptadores.
 
 ---
 
 # Commits pendientes
 
-- Rama `develop` 10 commits delante de `origin/main` (PRs #3-#6 mergeados: Fase 2 completa). PR pendiente `feature/fase2-ui-electron` → `develop` (ADR-006 + UI5 bootstrap + vite-plugin-electron + IPC + fixes lint/format): baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK).
-- Tras merge a `develop`, PR `develop` → `main` para sincronizar Fase 2 (flujo `main` protegida, `AGENTS.md:27`).
+- Rama `feature/fase2-ui-electron` 1 commit nuevo delante de `origin/feature/fase2-ui-electron` (ADR-007 + `ci.yml` endurecido + `codeql.yml` + `develop` branch protection + `PROJECT_STATE.md` Fase 3A): baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK). Acumula 2 commits sobre `origin/develop` (ADR-006 + ADR-007).
+- Tras merge `feature/fase2-ui-electron` → `develop`, PR `develop` → `main` para sincronizar Fase 2 + 3A (flujo `main` protegida, `AGENTS.md:27`).
 
 ---
 
@@ -157,5 +158,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - ADR-004 (2026-08-20): capa de BD — Drizzle + libSQL + migraciones + SecretStore + cifrado; `better-sqlite3` pospuesto por toolchain nativa.
 - ADR-005 (2026-08-20): runtime embebido llamafile (binario único) + Ollama/LM Studio + ModelManagerPort; factory multi-runtime con DI.
 - ADR-006 (2026-08-22): bootstrap UI5 CLI v4 (OpenUI5 1.133.0) + vite-plugin-electron (HMR) + electron-builder + IPC tipado; `core.autocrlf` y `pnpm + electron-builder` hang documentados.
+- ADR-007 (2026-08-26): CI/CD completo — `ci.yml` con `format:check` + `concurrency` + `timeout`, `codeql.yml` JS/TS + `develop` protegido; `dependabot.yml` verificado.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
