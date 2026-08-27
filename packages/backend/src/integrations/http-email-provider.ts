@@ -19,21 +19,26 @@ function normalizeBaseUrl(baseUrl: string): string {
   return trimmed;
 }
 
+export type TokenProvider = () => Promise<string | null>;
+
 export interface HttpEmailProviderConfig {
   providerId: EmailProviderId;
   baseUrl: string;
+  tokenProvider?: TokenProvider | undefined;
 }
 
 export class HttpEmailProvider implements EmailProviderPort {
   readonly providerId: EmailProviderId;
   private readonly baseUrl: string;
   private readonly fetchImpl: FetchLike;
+  private readonly tokenProvider?: TokenProvider | undefined;
 
   constructor(config: HttpEmailProviderConfig, fetchImpl: FetchLike = globalThis.fetch) {
     if (!config.providerId) throw new IntegrationError('providerId es obligatorio', 400);
     this.providerId = config.providerId;
     this.baseUrl = normalizeBaseUrl(config.baseUrl);
     this.fetchImpl = fetchImpl;
+    this.tokenProvider = config.tokenProvider;
   }
 
   async listMessages(
@@ -70,8 +75,10 @@ export class HttpEmailProvider implements EmailProviderPort {
   async healthCheck(): Promise<boolean> {
     try {
       const url = new URL(`${this.baseUrl}/health`);
+      const headers = await this.getAuthHeaders();
       const res = await this.fetchImpl(url, {
         method: 'GET',
+        headers,
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
       return res.ok;
@@ -94,10 +101,19 @@ export class HttpEmailProvider implements EmailProviderPort {
     };
   }
 
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    const base: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (!this.tokenProvider) return base;
+    const token = await this.tokenProvider();
+    if (token) base.Authorization = `Bearer ${token}`;
+    return base;
+  }
+
   private async request<T>(url: URL, method: string): Promise<T> {
+    const headers = await this.getAuthHeaders();
     const res = await this.fetchImpl(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!res.ok) {
