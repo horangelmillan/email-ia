@@ -2,9 +2,9 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos integración en revisión (2026-08-27)
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos integración mergeado en develop (2026-08-27)
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base completado: `EmailProviderPort` + `IntegrationError` en `packages/core` + adaptadores `FakeEmailProvider`/`HttpEmailProvider` + `createEmailProvider` factory en `packages/backend` (DI fetch, timeout 30s, `IntegrationError` mapping, paginación `maxResults`/`pageToken`). PR #14 abierto `feature/fase4-contracts → develop` (commit 448aed5). Baseline verde (125 tests, cobertura 92.84 % statements / 85.08 % branches, lint/typecheck/build/format:check OK). Hotfix CodeQL polynomial regex en revisión (stripTrailingSlash sin regex).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base **mergeado**: `EmailProviderPort` + `IntegrationError` en `packages/core` + adaptadores `FakeEmailProvider`/`HttpEmailProvider` + `createEmailProvider` factory en `packages/backend` (DI fetch, timeout 30s, `IntegrationError` mapping, paginación `maxResults`/`pageToken`). PR #14 `feature/fase4-contracts → develop` mergeado squash `c901cf1` (448aed5 + hotfix stripTrailingSlash). Baseline verde en `develop` (125 tests, cobertura 92.84 % statements / 85.08 % branches, lint/typecheck/build/format:check OK, `quality` + CodeQL SUCCESS).
 
 Última actualización: 2026-08-27
 
@@ -95,7 +95,8 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 - [x] Fase 3A — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection (ADR-007, 2026-08-26)
 - [x] Fase 3B — Observabilidad (ADR-009, 2026-08-27): Pino + OTel SDK opcional (OTLP http off por defecto, privacy-first) + health checks Express (`@email-ia/shared` zod + `@email-ia/backend` factory)
-- [~] Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (2026-08-27): puerto + `IntegrationError` + `Fake`/`Http` + factory con DI y 22 tests (125 totales, 92.88%/84.85% cobertura); pendiente Pact + MSW + adaptadores reales
+- [x] Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP base (2026-08-27): puerto + `IntegrationError` + `Fake`/`Http` + factory con DI y 22 tests (125 totales, 92.84%/85.08% cobertura) mergeado en `develop` (PR #14 `c901cf1`, `quality`+CodeQL verdes, hotfix regex incluido)
+- [ ] Fase 4 — Contratos formales Pact + MSW + adaptadores reales Gmail/Outlook/IMAP con OAuth/token + sync incremental offline-first (§3.7) (pendiente Fase 4 completo)
 
 ## Baja
 
@@ -122,7 +123,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 3A CI/CD (2026-08-26): `ci.yml` sin `format:check` omitía gate de `LF` (`.gitattributes eol=lf`) y sin `concurrency` malgastaba minutos Actions → añadidos `format:check`, `concurrency: ci-${{ github.ref }} cancel-in-progress`, `permissions: contents:read`, `timeout 15 min`, step `Test with coverage (threshold 80%)`. `develop` no estaba protegido (404 `gh api branches/develop/protection`) pese a `PROJECT_STATE.md:77` — corregido vía `gh api PUT` con `strict:true, contexts:[quality], enforce_admins:true`. `codeql.yml` añadido (`javascript-typescript`, `security-and-quality`, push/PR + cron semanal) con `security-events:write` solo en job; coste ~3 min/run en plan Free. `ADR-007` registra decisión. `pnpm format` corrige `ADR-007.md` para `format:check` verde.
 - Fase 3B Observabilidad (2026-08-27): `pino-http` con `import * as` para `NodeNext` (`build` falla con `export=`), `protobufjs` `allowBuilds:false` (OTLP deshabilitado por defecto no necesita build), `AppError` branches + `pino-http` levels fix en tests (`createLogger` real vs mock), `createApp.setup` hook para testear error handler sin duplicar lógica, `portSchema`/`booleanFromString` branches en `envSchema` (`loadEnv` con `dotenv`); cobertura 91.62%/82.15% (103 tests).
 - Fase 4 contrato base (2026-08-27): `EmailProviderPort` + `IntegrationError` en `packages/core` (port first, `exactOptionalPropertyTypes` con `| undefined`), `packages/backend/src/integrations/` con `FakeEmailProvider` (Map + `seed`, paginación `pageToken` offset) + `HttpEmailProvider` (DI fetch, `normalizeBaseUrl` con `IntegrationError 400`, `listMessages`/`getMessage` con `404→null`, `healthCheck` try/catch) + `factory createEmailProvider`. Tests DI fetch con `vi.fn` sin red (19 tests integraciones + 3 `IntegrationError`); `fake-email-provider.test.ts` fix `toHaveLength` sobre `.messages` (objeto `EmailProviderListResult`); cobertura 92.88%/84.85% (125 tests).
-- Fase 4 hotfix CodeQL (2026-08-27): `normalizeBaseUrl`/`normalizeOllamaBase` usaban `replace(/\/+$/, '')` — CodeQL `Polynomial regular expression` high severity en `http-email-provider.ts:15` (PR #14). Fix: `stripTrailingSlash` con loop `while (end>0 && s[end-1]==='/')` sin regex en `http-email-provider.ts:14`, `openai-compatible-provider.ts:16`, `ollama-provider.ts:12` (todos los `replace(/\/+$/, '')` del repo); `OllamaProvider` constructor simplificado a `stripTrailingSlash` único; cobertura 92.84%/85.08% (125 tests) verde, lint/typecheck/build/format:check OK.
+- Fase 4 hotfix CodeQL (2026-08-27): `normalizeBaseUrl`/`normalizeOllamaBase` usaban `replace(/\/+$/, '')` — CodeQL `Polynomial regular expression` high severity en `http-email-provider.ts:15` (PR #14). Fix: `stripTrailingSlash` con loop `while (end>0 && s[end-1]==='/')` sin regex en `http-email-provider.ts:14`, `openai-compatible-provider.ts:16`, `ollama-provider.ts:12` (todos los `replace(/\/+$/, '')` del repo); `OllamaProvider` constructor simplificado a `stripTrailingSlash` único; cobertura 92.84%/85.08% (125 tests) verde, lint/typecheck/build/format:check OK. PR #14 mergeado squash `c901cf1` a `develop` con `quality`+CodeQL SUCCESS (anterior failure resuelto).
 
 ---
 
@@ -139,7 +140,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno bloqueante para Fase 4 contrato base. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada. OTel deshabilitado por defecto no añade infra. CodeQL high `Polynomial regex` ya mitigado con `stripTrailingSlash` loop (PR #14 hotfix).
+- Ninguno. Fase 4 contrato base mergeado en `develop`. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada. OTel deshabilitado por defecto no añade infra. CodeQL high `Polynomial regex` ya mitigado y verificado verde en `develop`.
 
 ---
 
@@ -151,16 +152,15 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Commits pendientes
 
-- `feature/fase4-contracts` (2026-08-27): PR #14 abierto `feature/fase4-contracts → develop` (448aed5 + hotfix stripTrailingSlash): contrato base + fix CodeQL — pendiente push hotfix + merge a `develop` tras checks `quality` verde (branch protection `develop` requiere `quality`).
+- Ninguno en `feature/fase4-contracts` — PR #14 mergeado en `develop` (`c901cf1`). Siguiente `chore/sync-fase4-merge` para sincronizar `PROJECT_STATE.md` post-merge (este commit).
 
   ```bash
-  git status          # clean tras hotfix
-  pnpm lint && pnpm format:check && pnpm typecheck && pnpm build && pnpm test:coverage  # verdes 125 tests 92.84%/85.08%
-  git add packages/backend/src/integrations/http-email-provider.ts packages/ai-provider/src/openai-compatible-provider.ts packages/ai-provider/src/ollama-provider.ts PROJECT_STATE.md
-  git commit -m "fix(security): replace polynomial regex with loop stripTrailingSlash"
-  git push origin feature/fase4-contracts
-  gh pr view 14 --json statusCheckRollup
-  # luego merge PR 14 (squash) develop → sync main si aplica
+  git checkout develop && git pull origin develop  # ya en c901cf1
+  git checkout -b chore/sync-fase4-merge
+  # editar PROJECT_STATE.md (Estado General → mergeado, Backlog [x], Hallazgos, Bloqueadores)
+  pnpm lint && pnpm format:check && pnpm typecheck && pnpm build && pnpm test:coverage  # 125 tests 92.84%/85.08%
+  git add PROJECT_STATE.md && git commit -m "docs: sync PROJECT_STATE after Fase 4 contracts merge (PR #14)"
+  git push origin chore/sync-fase4-merge && gh pr create --base develop --title "docs: sync PROJECT_STATE after Fase 4 contracts merge" --body "Sync post PR #14 c901cf1"
   ```
 
 ---
