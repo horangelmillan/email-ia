@@ -12,8 +12,14 @@ export interface MockMessage {
   isRead: boolean;
 }
 
+function stripTrailingSlash(s: string): string {
+  let end = s.length;
+  while (end > 0 && s[end - 1] === '/') end--;
+  return s.slice(0, end);
+}
+
 export function createHandlers(baseUrl: string, messages: MockMessage[]) {
-  const base = baseUrl.replace(/\/+$/, '');
+  const base = stripTrailingSlash(baseUrl);
   return [
     http.get(`${base}/messages`, ({ request }) => {
       const url = new URL(request.url);
