@@ -2,11 +2,11 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B pendiente
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27)
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Baseline verde (72 tests, cobertura 91.05 % statements / 81.34 % branches, lint/typecheck/build/format:check OK).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Baseline verde (103 tests, cobertura 91.62 % statements / 82.15 % branches, lint/typecheck/build/format:check OK).
 
-Última actualización: 2026-08-26
+Última actualización: 2026-08-27
 
 ---
 
@@ -17,7 +17,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] Stack decidido: Node.js + Express, hexagonal + Shared Kernel (referencias: odata-server, node-modular-monolith-skill)
 - [x] Logging (Pino), configuración (dotenv + zod), error handling unificado, health checks decididos
 - [x] Scaffolding del paquete `backend` (workspace @email-ia/backend)
-- [ ] Lógica real del backend (Express, adapters) — Fase 2
+- [x] Fase 3B — Observabilidad (ADR-009, 2026-08-27): `createLogger` (Pino, `level`/`enabled`, DI `DestinationStream`), `createOtelSdk` (`OTEL_ENABLED` false por defecto, `NodeSDK` + `OTLPTraceExporter` http + `resourceFromAttributes(service.name)`, DI `NodeSdkCtor`/`exporterFactory`), `getHealth`/`getReadiness` puros, `createApp` (`helmet`+`cors`+`compression`+`express.json`, `pino-http` opcional, `GET /health` `GET /ready` 200/503, `setup` hook, error handler `AppError→status/code`); `shared` `envSchema`/`parseEnv`/`loadEnv` (zod 4.4.3, `PORT`/`LOG_LEVEL`/`OTEL_*`/`DATABASE_*`); 103 tests, 91.62%/82.15% cobertura, `allowBuilds: {protobufjs:false}`
 
 ## Core
 
@@ -92,7 +92,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 ## Media
 
 - [x] Fase 3A — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection (ADR-007, 2026-08-26)
-- Fase 3B — Observabilidad: instrumentación OTel activable por configuración, health checks
+- [x] Fase 3B — Observabilidad (ADR-009, 2026-08-27): Pino + OTel SDK opcional (OTLP http off por defecto, privacy-first) + health checks Express (`@email-ia/shared` zod + `@email-ia/backend` factory)
 - Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
 
 ## Baja
@@ -118,6 +118,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 2 IA (2026-08-20): `exactOptionalPropertyTypes:true` exige `?: T | undefined` explícito y `Required` con unión no propaga; `LlamafileRuntimeConfig`/`FactoryDeps` requirieron `host?: string | undefined` + spread condicional `...(host!==undefined?{host}:{})` para no pasar `undefined` como valor; `FilesystemModelManager` streaming bifurca `body.getReader` vs `arrayBuffer` fallback (dos ramas cubiertas con tests DI fs/fetch).
 - Fase 2 UI+Electron (2026-08-22): `core.autocrlf=true` recayó tras `pnpm add` (46 files con CRLF) → fix `git config core.autocrlf false` + `git add --renormalize .` + `pnpm format` (Prettier `eol=lf`). UI5 CLI v4 `ui5.yaml` exige `specVersion 4.0` + `framework OpenUI5 1.133.0`; `manifest.json` warning `fallbackLocale 'en'` sin `i18n_en.properties` → crear `i18n_en.properties`/`i18n_es.properties`. `vite-plugin-electron@0.28.8` requiere `vite@6` (no 8) y `preload` output por defecto `dist-electron/` → configurar `vite.build.outDir='dist'` para unificar; `resolvePreloadPath()` con `existsSync` para fallback `preload.mjs` vs `preload.cjs`. `electron-builder@25.1.8` en workspace causa hang infinito de `pnpm --filter`/`pnpm -r` en Windows (pnpm store scan >120 s con 25.1.8 deps) → retirado de `@email-ia/electron/package.json`, empaquetado vía `npx --yes electron-builder` sin instalar en workspace; `pnpm build/typecheck/test` recuperados (exit 0). ESLint `dist-electron/preload.mjs` con `require` ignorado vía `eslint.config.js: ignores dist-electron/release` y `.prettierignore`.
 - Fase 3A CI/CD (2026-08-26): `ci.yml` sin `format:check` omitía gate de `LF` (`.gitattributes eol=lf`) y sin `concurrency` malgastaba minutos Actions → añadidos `format:check`, `concurrency: ci-${{ github.ref }} cancel-in-progress`, `permissions: contents:read`, `timeout 15 min`, step `Test with coverage (threshold 80%)`. `develop` no estaba protegido (404 `gh api branches/develop/protection`) pese a `PROJECT_STATE.md:77` — corregido vía `gh api PUT` con `strict:true, contexts:[quality], enforce_admins:true`. `codeql.yml` añadido (`javascript-typescript`, `security-and-quality`, push/PR + cron semanal) con `security-events:write` solo en job; coste ~3 min/run en plan Free. `ADR-007` registra decisión. `pnpm format` corrige `ADR-007.md` para `format:check` verde.
+- Fase 3B Observabilidad (2026-08-27): `pino-http` con `import * as` para `NodeNext` (`build` falla con `export=`), `protobufjs` `allowBuilds:false` (OTLP deshabilitado por defecto no necesita build), `AppError` branches + `pino-http` levels fix en tests (`createLogger` real vs mock), `createApp.setup` hook para testear error handler sin duplicar lógica, `portSchema`/`booleanFromString` branches en `envSchema` (`loadEnv` con `dotenv`); cobertura 91.62%/82.15% (103 tests).
 
 ---
 
@@ -134,19 +135,19 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno. Fase 3A completada sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada.
+- Ninguno. Fase 3B completada sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada. OTel deshabilitado por defecto no añade infra.
 
 ---
 
 # Próxima tarea
 
-- Fase 3B — Observabilidad: instrumentación OTel activable por configuración (Pino + OTel SDK, export OTLP opcional deshabilitado por defecto) + health checks Express, según ARCHITECTURE_DECISIONS §3.5 y ADR-002. Luego Fase 4 — Contratos Gmail/Outlook/IMAP (Pact) + adaptadores.
+- Fase 4 — Contratos de integración Gmail/Outlook/IMAP (Pact + MSW) y adaptadores, según ARCHITECTURE_DECISIONS §3.4 y §3.6. Health checks (`/health`/`/ready`) ya disponibles para probar contratos. Luego Runbooks y reevaluar Loki/Tempo/SaaS si hay destino de despliegue.
 
 ---
 
 # Commits pendientes
 
-- Ninguno. Ramas sincronizadas tras PR #7 (`feature/fase2-ui-electron` → `develop`), PR #8 (`develop` → `main`) y PR #9 (`sync/develop-from-main` → `develop`). `origin/main` en `eb2bc8a`, `origin/develop` en `c244590` (1 merge de sync por delante, patron habitual). Baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK).
+- `feature/fase3b-observabilidad` (esta rama): Fase 3B completa. Commits a generar: `feat(shared): add zod env schema parseEnv/loadEnv` + `feat(backend): add Pino logger + OTel SDK optional + health checks + Express app (helmet/cors/compression/pino-http)` + `docs: ADR-009 + PROJECT_STATE Fase 3B`. Baseline verde (103 tests, 91.62 %/82.15 % cobertura, lint/typecheck/build/format:check OK). Siguiente: PR `feature/fase3b-observabilidad → develop` con checks `quality` + `gitleaks` + `CodeQL`.
 
 ---
 
@@ -158,5 +159,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - ADR-005 (2026-08-20): runtime embebido llamafile (binario único) + Ollama/LM Studio + ModelManagerPort; factory multi-runtime con DI.
 - ADR-006 (2026-08-22): bootstrap UI5 CLI v4 (OpenUI5 1.133.0) + vite-plugin-electron (HMR) + electron-builder + IPC tipado; `core.autocrlf` y `pnpm + electron-builder` hang documentados.
 - ADR-007 (2026-08-26): CI/CD completo — `ci.yml` con `format:check` + `concurrency` + `timeout`, `codeql.yml` JS/TS + `develop` protegido; `dependabot.yml` verificado.
+- ADR-008 (2026-08-27): Harness completo — `ponytail` + 20+ skills + 2 locales + eslint MCP, `AGENTS.md` sinérgico.
+- ADR-009 (2026-08-27): Observabilidad Fase 3B — `Pino` + `OTel SDK` opcional (OTLP http off por defecto, privacy-first) + health checks (`/health`/`/ready`, `AppError` mapping) + `zod` config (`@email-ia/shared`).
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
