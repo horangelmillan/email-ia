@@ -18,6 +18,12 @@ export type { LoggerConfig } from './observability/logger.js';
 export { createOtelSdk } from './observability/otel.js';
 export type { OtelConfig, OtelSdk } from './observability/otel.js';
 
+export { FakeEmailProvider } from './integrations/fake-email-provider.js';
+export { HttpEmailProvider } from './integrations/http-email-provider.js';
+export type { FetchLike, HttpEmailProviderConfig } from './integrations/http-email-provider.js';
+export { createEmailProvider } from './integrations/factory.js';
+export type { CreateEmailProviderConfig } from './integrations/factory.js';
+
 export function makeProvider(baseUrl: string) {
   try {
     return createAIProvider({ baseUrl });

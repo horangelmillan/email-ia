@@ -2,9 +2,9 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27)
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos integración en curso (2026-08-27)
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Baseline verde (103 tests, cobertura 91.62 % statements / 82.15 % branches, lint/typecheck/build/format:check OK).
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base completado: `EmailProviderPort` + `IntegrationError` en `packages/core` + adaptadores `FakeEmailProvider`/`HttpEmailProvider` + `createEmailProvider` factory en `packages/backend` (DI fetch, timeout 30s, `IntegrationError` mapping, paginación `maxResults`/`pageToken`). Baseline verde (125 tests, cobertura 92.88 % statements / 84.85 % branches, lint/typecheck/build/format:check OK).
 
 Última actualización: 2026-08-27
 
@@ -25,6 +25,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - [x] `packages/ai-provider` convertido en adaptador del puerto (`OpenAICompatibleProvider` implementa `AIProviderPort` del Core, lanza `ProviderError` del Core, re-exporta contrato por compatibilidad; dep `@email-ia/shared` no usada eliminada)
 - [x] Puertos de persistencia en `packages/core` (ADR-004, 2026-08-20): `EmailRepositoryPort`/`ContactRepositoryPort` + `SecretStorePort` y `DbError` (extiende `AppError` con `code DB_ERROR`); exportados desde `@email-ia/core`
 - [x] `ModelManagerPort` en `packages/core` (ADR-005, 2026-08-20): `LocalModelInfo`/`PullProgress` + `listLocalModels`/`pullModel`/`removeModel`/`getModelPath`; adaptador `FilesystemModelManager` en `packages/ai-provider` (DI fs/fetch/path, streaming + progreso)
+- [x] `EmailProviderPort` + `IntegrationError` en `packages/core` (Fase 4, 2026-08-27): `EmailProviderPort` (`providerId`, `listMessages(accountId, {maxResults, pageToken})→{messages,nextPageToken}`, `getMessage`, `healthCheck`) + tipos `EmailProviderId/Message/ListOptions/Result` + `IntegrationError extends AppError` (`code INTEGRATION_ERROR`); `exactOptionalPropertyTypes` con `| undefined`
 
 ## Frontend
 
@@ -54,7 +55,8 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 ## Integraciones
 
 - [x] Proveedores objetivo: Gmail, Outlook, IMAP, sistema de archivos (definidos en PROJECT.md)
-- [ ] Adaptadores de integración (pendiente Fase 2+)
+- [x] Fase 4 contrato base (2026-08-27): `EmailProviderPort` en `packages/core` + `IntegrationError`; adaptadores en `packages/backend/src/integrations/` — `FakeEmailProvider` (in-memory con `seed`, paginación offset/`pageToken`/`maxResults`) + `HttpEmailProvider` (DI fetch, `normalizeBaseUrl`, `GET /messages?accountId&maxResults&pageToken` + `GET /messages/:id?accountId` + `GET /health`, `IntegrationError` en HTTP no ok/404→null, `healthCheck` false en error) + `createEmailProvider({provider, baseUrl, initialData})` con defaults `gmail/outlook/imap`; dependency rule `shared←core←backend` preservada, `AppError` mapping vía `AppError` handler de `createApp`
+- [ ] Pact + MSW contratos formales y adaptadores reales Gmail/Outlook/IMAP (pendiente Fase 4 completo)
 
 ## Testing
 
@@ -93,7 +95,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 - [x] Fase 3A — CI/CD GitHub Actions completo, dependabot, CodeQL, branch protection (ADR-007, 2026-08-26)
 - [x] Fase 3B — Observabilidad (ADR-009, 2026-08-27): Pino + OTel SDK opcional (OTLP http off por defecto, privacy-first) + health checks Express (`@email-ia/shared` zod + `@email-ia/backend` factory)
-- Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (Pact), adaptadores
+- [~] Fase 4 — Contrato de integraciones Gmail/Outlook/IMAP (2026-08-27): puerto + `IntegrationError` + `Fake`/`Http` + factory con DI y 22 tests (125 totales, 92.88%/84.85% cobertura); pendiente Pact + MSW + adaptadores reales
 
 ## Baja
 
@@ -119,6 +121,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 2 UI+Electron (2026-08-22): `core.autocrlf=true` recayó tras `pnpm add` (46 files con CRLF) → fix `git config core.autocrlf false` + `git add --renormalize .` + `pnpm format` (Prettier `eol=lf`). UI5 CLI v4 `ui5.yaml` exige `specVersion 4.0` + `framework OpenUI5 1.133.0`; `manifest.json` warning `fallbackLocale 'en'` sin `i18n_en.properties` → crear `i18n_en.properties`/`i18n_es.properties`. `vite-plugin-electron@0.28.8` requiere `vite@6` (no 8) y `preload` output por defecto `dist-electron/` → configurar `vite.build.outDir='dist'` para unificar; `resolvePreloadPath()` con `existsSync` para fallback `preload.mjs` vs `preload.cjs`. `electron-builder@25.1.8` en workspace causa hang infinito de `pnpm --filter`/`pnpm -r` en Windows (pnpm store scan >120 s con 25.1.8 deps) → retirado de `@email-ia/electron/package.json`, empaquetado vía `npx --yes electron-builder` sin instalar en workspace; `pnpm build/typecheck/test` recuperados (exit 0). ESLint `dist-electron/preload.mjs` con `require` ignorado vía `eslint.config.js: ignores dist-electron/release` y `.prettierignore`.
 - Fase 3A CI/CD (2026-08-26): `ci.yml` sin `format:check` omitía gate de `LF` (`.gitattributes eol=lf`) y sin `concurrency` malgastaba minutos Actions → añadidos `format:check`, `concurrency: ci-${{ github.ref }} cancel-in-progress`, `permissions: contents:read`, `timeout 15 min`, step `Test with coverage (threshold 80%)`. `develop` no estaba protegido (404 `gh api branches/develop/protection`) pese a `PROJECT_STATE.md:77` — corregido vía `gh api PUT` con `strict:true, contexts:[quality], enforce_admins:true`. `codeql.yml` añadido (`javascript-typescript`, `security-and-quality`, push/PR + cron semanal) con `security-events:write` solo en job; coste ~3 min/run en plan Free. `ADR-007` registra decisión. `pnpm format` corrige `ADR-007.md` para `format:check` verde.
 - Fase 3B Observabilidad (2026-08-27): `pino-http` con `import * as` para `NodeNext` (`build` falla con `export=`), `protobufjs` `allowBuilds:false` (OTLP deshabilitado por defecto no necesita build), `AppError` branches + `pino-http` levels fix en tests (`createLogger` real vs mock), `createApp.setup` hook para testear error handler sin duplicar lógica, `portSchema`/`booleanFromString` branches en `envSchema` (`loadEnv` con `dotenv`); cobertura 91.62%/82.15% (103 tests).
+- Fase 4 contrato base (2026-08-27): `EmailProviderPort` + `IntegrationError` en `packages/core` (port first, `exactOptionalPropertyTypes` con `| undefined`), `packages/backend/src/integrations/` con `FakeEmailProvider` (Map + `seed`, paginación `pageToken` offset) + `HttpEmailProvider` (DI fetch, `normalizeBaseUrl` con `IntegrationError 400`, `listMessages`/`getMessage` con `404→null`, `healthCheck` try/catch) + `factory createEmailProvider`. Tests DI fetch con `vi.fn` sin red (19 tests integraciones + 3 `IntegrationError`); `fake-email-provider.test.ts` fix `toHaveLength` sobre `.messages` (objeto `EmailProviderListResult`); cobertura 92.88%/84.85% (125 tests).
 
 ---
 
@@ -135,19 +138,19 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno. Fase 3B completada sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada. OTel deshabilitado por defecto no añade infra.
+- Ninguno. Fase 4 contrato base sin bloqueos. Hang pnpm + electron-builder sigue mitigado (paquete fuera de workspace). CodeQL cuota Free monitoreada. OTel deshabilitado por defecto no añade infra.
 
 ---
 
 # Próxima tarea
 
-- Fase 4 — Contratos de integración Gmail/Outlook/IMAP (Pact + MSW) y adaptadores, según ARCHITECTURE_DECISIONS §3.4 y §3.6. Health checks (`/health`/`/ready`) ya disponibles para probar contratos. Luego Runbooks y reevaluar Loki/Tempo/SaaS si hay destino de despliegue.
+- Fase 4 completo — Contratos formales Pact + MSW (consumer/provider) para Gmail/Outlook/IMAP sobre `EmailProviderPort`, adaptadores reales con OAuth/token + sync incremental offline-first (§3.7), según ARCHITECTURE_DECISIONS §3.3/3.4/3.6. Health checks (`/health`/`/ready`) ya disponibles para probar contratos. Luego Runbooks y reevaluar Loki/Tempo/SaaS si hay destino de despliegue.
 
 ---
 
 # Commits pendientes
 
-- Ninguno. Ramas sincronizadas tras PR #12 (`feature/fase3b-observabilidad` → `develop`, merge `eca2001`). `origin/develop` en `eca2001` (+20 archivos Fase 3B, ADR-009). Baseline verde (103 tests, 91.62 %/82.15 % cobertura, lint/typecheck/build/format:check OK). Siguiente: `feature/fase4-contracts` (Pact + MSW, EmailProviderPort + adaptadores Gmail/Outlook/IMAP).
+- `feature/fase4-contracts` (2026-08-27): contrato base `EmailProviderPort` + `IntegrationError` + `Fake`/`Http` + factory (8 archivos nuevos, 125 tests, 92.88%/84.85% cobertura, lint/typecheck/build/format:check OK) — pendiente commit + push + PR a `develop`.
 
 ---
 
@@ -161,5 +164,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - ADR-007 (2026-08-26): CI/CD completo — `ci.yml` con `format:check` + `concurrency` + `timeout`, `codeql.yml` JS/TS + `develop` protegido; `dependabot.yml` verificado.
 - ADR-008 (2026-08-27): Harness completo — `ponytail` + 20+ skills + 2 locales + eslint MCP, `AGENTS.md` sinérgico.
 - ADR-009 (2026-08-27): Observabilidad Fase 3B — `Pino` + `OTel SDK` opcional (OTLP http off por defecto, privacy-first) + health checks (`/health`/`/ready`, `AppError` mapping) + `zod` config (`@email-ia/shared`).
+- Fase 4 contrato base (2026-08-27): `EmailProviderPort` + `IntegrationError` en `core` + `FakeEmailProvider`/`HttpEmailProvider` + `createEmailProvider` en `backend` (DI fetch, timeout 30s, paginación, `IntegrationError`); hexagonal `shared←core←backend` preservado.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
