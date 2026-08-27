@@ -147,7 +147,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Commits pendientes
 
-- `feature/fase3b-observabilidad` (esta rama): Fase 3B completa. Commits a generar: `feat(shared): add zod env schema parseEnv/loadEnv` + `feat(backend): add Pino logger + OTel SDK optional + health checks + Express app (helmet/cors/compression/pino-http)` + `docs: ADR-009 + PROJECT_STATE Fase 3B`. Baseline verde (103 tests, 91.62 %/82.15 % cobertura, lint/typecheck/build/format:check OK). Siguiente: PR `feature/fase3b-observabilidad → develop` con checks `quality` + `gitleaks` + `CodeQL`.
+- Ninguno. Ramas sincronizadas tras PR #12 (`feature/fase3b-observabilidad` → `develop`, merge `eca2001`). `origin/develop` en `eca2001` (+20 archivos Fase 3B, ADR-009). Baseline verde (103 tests, 91.62 %/82.15 % cobertura, lint/typecheck/build/format:check OK). Siguiente: `feature/fase4-contracts` (Pact + MSW, EmailProviderPort + adaptadores Gmail/Outlook/IMAP).
 
 ---
 
