@@ -9,5 +9,8 @@
     "typecheck": "echo \"No TS typecheck for UI5 sources (JS/XML)\"",
     "lint": "eslint webapp --ext .js",
     "test": "echo \"UI tests via Playwright (Fase 2+)\""
+  },
+  "devDependencies": {
+    "@ui5/cli": "^4.0.14"
   }
 }
