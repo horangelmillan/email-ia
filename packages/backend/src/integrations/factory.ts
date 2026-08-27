@@ -1,12 +1,13 @@
 import type { EmailProviderId, EmailProviderPort } from '@email-ia/core';
 import { IntegrationError } from '@email-ia/core';
 import { FakeEmailProvider } from './fake-email-provider.js';
-import { HttpEmailProvider, type FetchLike } from './http-email-provider.js';
+import { HttpEmailProvider, type FetchLike, type TokenProvider } from './http-email-provider.js';
 
 export interface CreateEmailProviderConfig {
   provider: EmailProviderId;
   baseUrl?: string;
   initialData?: Record<string, import('@email-ia/core').EmailProviderMessage[]>;
+  tokenProvider?: TokenProvider | undefined;
 }
 
 const DEFAULT_BASE_URLS: Record<Exclude<EmailProviderId, 'fake'>, string> = {
@@ -29,5 +30,8 @@ export function createEmailProvider(
     config.baseUrl ?? DEFAULT_BASE_URLS[config.provider as Exclude<EmailProviderId, 'fake'>];
   if (!baseUrl) throw new IntegrationError(`baseUrl requerido para ${config.provider}`, 400);
 
-  return new HttpEmailProvider({ providerId: config.provider, baseUrl }, fetchImpl);
+  return new HttpEmailProvider(
+    { providerId: config.provider, baseUrl, tokenProvider: config.tokenProvider },
+    fetchImpl,
+  );
 }
