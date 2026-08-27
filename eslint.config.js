@@ -5,6 +5,8 @@ export default [
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/dist-electron/**',
+      '**/release/**',
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
