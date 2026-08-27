@@ -146,8 +146,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Commits pendientes
 
-- Rama `feature/fase2-ui-electron` 1 commit nuevo delante de `origin/feature/fase2-ui-electron` (ADR-007 + `ci.yml` endurecido + `codeql.yml` + `develop` branch protection + `PROJECT_STATE.md` Fase 3A): baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK). Acumula 2 commits sobre `origin/develop` (ADR-006 + ADR-007).
-- Tras merge `feature/fase2-ui-electron` → `develop`, PR `develop` → `main` para sincronizar Fase 2 + 3A (flujo `main` protegida, `AGENTS.md:27`).
+- Ninguno. Ramas sincronizadas tras PR #7 (`feature/fase2-ui-electron` → `develop`), PR #8 (`develop` → `main`) y PR #9 (`sync/develop-from-main` → `develop`). `origin/main` en `eb2bc8a`, `origin/develop` en `c244590` (1 merge de sync por delante, patron habitual). Baseline verde (72 tests, 91.05 %/81.34 % cobertura, lint/typecheck/build/format:check OK).
 
 ---
 
