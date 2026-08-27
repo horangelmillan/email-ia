@@ -34,7 +34,15 @@ export type {
   PullProgress,
   PullProgressCallback,
 } from './ports/model-manager.port.js';
+export type {
+  EmailProviderId,
+  EmailProviderListOptions,
+  EmailProviderListResult,
+  EmailProviderMessage,
+  EmailProviderPort,
+} from './ports/email-provider.port.js';
 export { AppError } from './errors/app-error.js';
 export type { AppErrorOptions } from './errors/app-error.js';
 export { DbError } from './errors/db-error.js';
+export { IntegrationError } from './errors/integration-error.js';
 export { ProviderError } from './errors/provider-error.js';
