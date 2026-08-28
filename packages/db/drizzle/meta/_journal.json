@@ -8,6 +8,13 @@
       "when": 1724178000000,
       "tag": "0001_initial",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1756420000000,
+      "tag": "0002_rag_chunks",
+      "breakpoints": true
     }
   ]
 }
