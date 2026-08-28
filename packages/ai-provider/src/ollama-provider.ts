@@ -9,10 +9,16 @@ export interface OllamaProviderConfig {
 
 const OLLAMA_PULL_TIMEOUT_MS = 300_000;
 
+function stripTrailingSlash(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '/') end--;
+  return value.slice(0, end);
+}
+
 function normalizeOllamaBase(baseUrl: string): string {
-  const trimmed = baseUrl.replace(/\/+$/, '');
+  const trimmed = stripTrailingSlash(baseUrl);
   if (!trimmed) throw new ProviderError('baseUrl es obligatoria');
-  return trimmed.endsWith('/v1') ? trimmed.slice(0, -3).replace(/\/+$/, '') : trimmed;
+  return trimmed.endsWith('/v1') ? stripTrailingSlash(trimmed.slice(0, -3)) : trimmed;
 }
 
 export class OllamaProvider extends OpenAICompatibleProvider {
@@ -20,9 +26,8 @@ export class OllamaProvider extends OpenAICompatibleProvider {
 
   constructor(config: OllamaProviderConfig, fetchImpl: FetchLike = globalThis.fetch) {
     // OpenAI-compatible part uses /v1; ollama pull uses /api/pull without /v1
-    const v1Base = config.baseUrl.replace(/\/+$/, '').endsWith('/v1')
-      ? config.baseUrl.replace(/\/+$/, '')
-      : `${config.baseUrl.replace(/\/+$/, '')}/v1`;
+    const stripped = stripTrailingSlash(config.baseUrl);
+    const v1Base = stripped.endsWith('/v1') ? stripped : `${stripped}/v1`;
     super({ ...config, baseUrl: v1Base }, fetchImpl);
     this.ollamaBase = normalizeOllamaBase(config.baseUrl);
   }

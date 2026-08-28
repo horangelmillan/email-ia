@@ -14,7 +14,9 @@ export type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Respo
 const REQUEST_TIMEOUT_MS = 30_000;
 
 function normalizeBaseUrl(baseUrl: string): string {
-  const base = baseUrl.replace(/\/+$/, '');
+  let end = baseUrl.length;
+  while (end > 0 && baseUrl[end - 1] === '/') end--;
+  const base = baseUrl.slice(0, end);
   if (!base) {
     throw new ProviderError('baseUrl es obligatoria');
   }

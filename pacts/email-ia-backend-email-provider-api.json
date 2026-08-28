@@ -1,0 +1,131 @@
+{
+  "consumer": {
+    "name": "email-ia-backend"
+  },
+  "interactions": [
+    {
+      "description": "a getMessage request for existing id",
+      "providerStates": [
+        {
+          "name": "message 1 exists for account acc1"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/messages/1",
+        "query": {
+          "accountId": ["acc1"]
+        }
+      },
+      "response": {
+        "body": {
+          "body": null,
+          "from": "a@x",
+          "id": "1",
+          "isRead": false,
+          "receivedAt": null,
+          "snippet": null,
+          "subject": "hi",
+          "threadId": null,
+          "to": ["b@x"]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a getMessage request for missing id",
+      "providerStates": [
+        {
+          "name": "message 999 does not exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/messages/999",
+        "query": {
+          "accountId": ["acc1"]
+        }
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "a healthCheck request",
+      "providerStates": [
+        {
+          "name": "provider is healthy"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/health"
+      },
+      "response": {
+        "body": {
+          "status": "ok"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a paginated listMessages request",
+      "providerStates": [
+        {
+          "name": "messages exist for account acc1"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/messages",
+        "query": {
+          "accountId": ["acc1"],
+          "maxResults": ["1"]
+        }
+      },
+      "response": {
+        "body": {
+          "messages": [
+            {
+              "body": "b",
+              "from": "a@x",
+              "id": "1",
+              "isRead": false,
+              "receivedAt": "2026-01-01T00:00:00Z",
+              "snippet": "s",
+              "subject": "hi",
+              "threadId": null,
+              "to": ["b@x"]
+            }
+          ],
+          "nextPageToken": "1"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "15.0.1"
+    },
+    "pactRust": {
+      "ffi": "0.4.28",
+      "models": "1.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "email-provider-api"
+  }
+}
