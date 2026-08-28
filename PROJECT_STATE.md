@@ -6,7 +6,7 @@ Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3
 
 Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base **mergeado** PR #14 `c901cf1` (125 tests, 92.84%/85.08%). Fase 4 completo **mergeado** PR #16 `f072dc1`: `HttpEmailProvider` + `TokenProvider` (DI Bearer, `Authorization` header, `healthCheck` con auth) + `EmailSyncService` (`syncAccount` incremental offline-first, paginación `pageToken` loop, upsert `EmailRepositoryPort` server-wins) + MSW handlers (`msw/node` `createHandlers`, `stripTrailingSlash` sin regex) + Pact V3 consumer (`pacts/email-ia-backend-email-provider-api.json`, 4 interacciones list/get/health, `msw:true` allowBuilds). Baseline verde en `develop` (137 tests, 93.24%/85.74% cobertura, lint/typecheck/build/format:check OK, `quality`+CodeQL SUCCESS en PR #16).
 
-Última actualización: 2026-08-27
+Última actualización: 2026-08-28
 
 ---
 
@@ -153,14 +153,14 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Commits pendientes
 
-- `develop` — `pnpm format` corrige `pacts/email-ia-backend-email-provider-api.json` (arrays multilínea Prettier) + sync `PROJECT_STATE.md` tras merge PR #16 a `develop`. Listo para commit en rama `chore/sync-fase4-post-merge-2` → PR a `develop`, luego PR `develop → main`.
+- Ninguno. Rama `chore/sync-pacts-format` corrige formato Prettier de `pacts/email-ia-backend-email-provider-api.json` (arrays multilínea) + sync `PROJECT_STATE.md` (2026-08-28). Tras merge a `develop`, siguiente: PR `develop → main` con tag SemVer (SemVer 2.0, §8 D9) para cierre Fase 4.
 
   ```bash
-  git checkout -b chore/sync-fase4-post-merge-2 develop
+  # En chore/sync-pacts-format (actual)
   pnpm lint && pnpm format:check && pnpm typecheck && pnpm build && pnpm test:coverage
   git add pacts/email-ia-backend-email-provider-api.json PROJECT_STATE.md
-  git commit -m "docs: sync PROJECT_STATE after Fase 4 completo merge (PR #16)"
-  git push -u origin chore/sync-fase4-post-merge-2 && gh pr create --base develop --title "docs: sync PROJECT_STATE after Fase 4 completo merge (PR #16)" --body "Sync tras PR #16 — ver PROJECT_STATE.md"
+  git commit -m "chore: format pact file and sync PROJECT_STATE"
+  git push -u origin chore/sync-pacts-format && gh pr create --base develop --title "chore: format pact file and sync PROJECT_STATE" --body "Prettier pact JSON + PROJECT_STATE sync"
   # Luego PR develop → main con tag SemVer
   ```
 
