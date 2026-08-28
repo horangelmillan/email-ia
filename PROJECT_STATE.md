@@ -2,9 +2,9 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos base mergeado (2026-08-27) → Fase 4 completo Pact+MSW+OAuth+sync **mergeado en `develop`** PR #16 `f072dc1` (2026-08-27) → **Fase 4 cierre mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28)**
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos base mergeado (2026-08-27) → Fase 4 completo Pact+MSW+OAuth+sync **mergeado en `develop`** PR #16 `f072dc1` (2026-08-27) → **Fase 4 cierre mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28)** → **Fase 4+ Runbooks operativos completados (2026-08-28)**
 
-Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base **mergeado** PR #14 `c901cf1` (125 tests, 92.84%/85.08%). Fase 4 completo **mergeado** PR #16 `f072dc1`: `HttpEmailProvider` + `TokenProvider` (DI Bearer, `Authorization` header, `healthCheck` con auth) + `EmailSyncService` (`syncAccount` incremental offline-first, paginación `pageToken` loop, upsert `EmailRepositoryPort` server-wins) + MSW handlers (`msw/node` `createHandlers`, `stripTrailingSlash` sin regex) + Pact V3 consumer (`pacts/email-ia-backend-email-provider-api.json`, 4 interacciones list/get/health, `msw:true` allowBuilds). Baseline verde en `develop` (137 tests, 93.24%/85.74% cobertura, lint/typecheck/build/format:check OK, `quality`+CodeQL SUCCESS en PR #16). **Fase 4 cierre `v0.4.0` mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28); `develop` sincronizado PR #20 `60b12bf`. Baseline `main` verde (`quality`+CodeQL SUCCESS).**
+Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base **mergeado** PR #14 `c901cf1` (125 tests, 92.84%/85.08%). Fase 4 completo **mergeado** PR #16 `f072dc1`: `HttpEmailProvider` + `TokenProvider` (DI Bearer, `Authorization` header, `healthCheck` con auth) + `EmailSyncService` (`syncAccount` incremental offline-first, paginación `pageToken` loop, upsert `EmailRepositoryPort` server-wins) + MSW handlers (`msw/node` `createHandlers`, `stripTrailingSlash` sin regex) + Pact V3 consumer (`pacts/email-ia-backend-email-provider-api.json`, 4 interacciones list/get/health, `msw:true` allowBuilds). Baseline verde en `develop` (137 tests, 93.24%/85.74% cobertura, lint/typecheck/build/format:check OK, `quality`+CodeQL SUCCESS en PR #16). **Fase 4 cierre `v0.4.0` mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28); `develop` sincronizado PR #20 `60b12bf`. Baseline `main` verde (`quality`+CodeQL SUCCESS).** **Fase 4+ Runbooks operativos completados (2026-08-28): `docs/runbooks/*.md` (5 runbooks + README, 137 tests 93.24%/85.74% verde, `format:check` normalizado CRLF→LF 117 files).**
 
 Última actualización: 2026-08-28
 
@@ -100,7 +100,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 ## Baja
 
-- Fase 4+ — Runbooks operativos
+- [x] Fase 4+ — Runbooks operativos (2026-08-28): `docs/runbooks/` — `01-instalacion.md` (pnpm + `allowBuilds` + UI5/Electron), `02-migraciones.md` (`drizzle-kit generate` + `migrate()` + `DATABASE_URL`/`SecretStorePort`), `03-gestion-modelos-ia.md` (`ModelManagerPort` + `FilesystemModelManager`/`OllamaProvider`/`LlamafileRuntime` + factory), `04-sync-incremental.md` (`EmailProviderPort` + `EmailSyncService` `pageToken` loop server-wins + `TokenProvider` Bearer + MSW/Pact), `05-recuperacion.md` (backup/restore `file:email-ia.db` + `SecretStorePort` clave + `GET /health`/`/ready`), `README.md` índice; `pnpm format` normaliza CRLF→LF 117 files (`core.autocrlf` + `.gitattributes eol=lf`)
 - Futuro — Reevaluar Nx/Turborepo, Loki/Tempo o SaaS si hay destino de despliegue
 
 ---
@@ -126,6 +126,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 4 hotfix CodeQL (2026-08-27): `normalizeBaseUrl`/`normalizeOllamaBase` usaban `replace(/\/+$/, '')` — CodeQL `Polynomial regular expression` high severity en `http-email-provider.ts:15` (PR #14). Fix: `stripTrailingSlash` con loop `while (end>0 && s[end-1]==='/')` sin regex en `http-email-provider.ts:14`, `openai-compatible-provider.ts:16`, `ollama-provider.ts:12` (todos los `replace(/\/+$/, '')` del repo); `OllamaProvider` constructor simplificado a `stripTrailingSlash` único; cobertura 92.84%/85.08% (125 tests) verde, lint/typecheck/build/format:check OK. PR #14 mergeado squash `c901cf1` a `develop` con `quality`+CodeQL SUCCESS (anterior failure resuelto).
 - Fase 4 completo Pact+MSW+sync+token (2026-08-27): `HttpEmailProvider` + `TokenProvider` DI (`Authorization: Bearer`, `getAuthHeaders`), `EmailSyncService` incremental (`syncAccount` pageToken loop, upsert `EmailRepositoryPort` con server-wins, offline-first), MSW `msw@2.8.6` (`createHandlers` paginado + 404 + health, `stripTrailingSlash` sin regex) y Pact V3 `@pact-foundation/pact@15.0.1` (`email-ia-backend→email-provider-api` 4 interacciones, pact file `pacts/email-ia-backend-email-provider-api.json`). `msw:true` en `allowBuilds` (postinstall ok), 137 tests 93.24%/85.74% cobertura, `pnpm lint/typecheck/build/format:check` verdes. Bloqueo OAuth real (client id/secret Gmail/Outlook/IMAP sin credenciales) mitigado vía `TokenProvider` callback + `SecretStorePort`; adaptadores reales Gmail/Outlook usan mismo `HttpEmailProvider` con `tokenProvider` vía `SecretStore` (no hardcode secrets) y sync incremental ya valida contrato offline-first (§3.7). PR #16 mergeado `f072dc1` con `quality`+CodeQL SUCCESS; `pnpm format` posterior corrige pact JSON arrays multilínea (19 líneas) sin cambio semántico.
 - Fase 4 cierre (2026-08-28): `develop` 1b30cd7→119a2fe (PR #19) + `develop→main` PR #18 `55a33b9` + tag `v0.4.0` + sync `develop` PR #20 `60b12bf` — 3 PRs con `quality`+CodeQL SUCCESS, `core.autocrlf` CRLF→LF normalizado vía `pnpm format`; `pnpm format:check` ya verde en ambos branches.
+- Fase 4+ Runbooks (2026-08-28): `docs/runbooks/` 5 runbooks + `README.md` creados según `ARCHITECTURE_DECISIONS:3.8` (objetivo/requisitos/procedimiento/validación/recuperación); `pnpm format:check` recayó a 117 files con CRLF (`system gitconfig autocrlf=true` + checkout previo) → `git config core.autocrlf false` + `pnpm format` (117 files LF, pact arrays multilínea 19 líneas) deja `format:check` verde; `pnpm lint/typecheck/build/test:coverage` verdes (137 tests 93.24%/85.74%); sin ADR (no decisión arquitectónica, solo docs operativas).
 
 ---
 
@@ -142,19 +143,19 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno bloqueante. Fase 4 cierre **completo** — `develop` PR #16 + `chore` PR #19 + `main` PR #18 `55a33b9` + tag `v0.4.0` + sync `develop` PR #20 `60b12bf` todos con `quality`+CodeQL SUCCESS (137 tests 93.24%/85.74%). OAuth real Gmail/Outlook/IMAP sin credenciales — mitigado con `TokenProvider` DI + `SecretStorePort`; MSW/Pact validan contrato sin red. Hang pnpm + electron-builder mitigado. CodeQL cuota Free OK. OTel off por defecto. Pact V3 warning no bloqueante.
+- Ninguno bloqueante. Fase 4+ Runbooks **completo** en `feature/docs-runbooks` (117 files CRLF→LF + 6 runbooks, `quality`+`format:check` verde local). Fase 4 cierre **completo** — `develop` PR #16 + `chore` PR #19 + `main` PR #18 `55a33b9` + tag `v0.4.0` + sync `develop` PR #20 `60b12bf` todos con `quality`+CodeQL SUCCESS (137 tests 93.24%/85.74%). OAuth real Gmail/Outlook/IMAP sin credenciales — mitigado con `TokenProvider` DI + `SecretStorePort`; MSW/Pact validan contrato sin red. Hang pnpm + electron-builder mitigado. CodeQL cuota Free OK. OTel off por defecto. Pact V3 warning no bloqueante.
 
 ---
 
 # Próxima tarea
 
-- **Runbooks operativos** (`docs/runbooks/*.md` por operación: instalación, migraciones, gestión modelos IA, sync incremental offline-first, recuperación) según ARCHITECTURE_DECISIONS §3.8 — Fase 4+ (prioridad Media). Reevaluar Loki/Tempo/SaaS solo si hay destino de despliegue (ADR-002 §Observabilidad, ADR-009). Base `v0.4.0` en `main` lista para iterar.
+- **Futuro** — Reevaluar Nx/Turborepo, Loki/Tempo o SaaS solo si hay destino de despliegue (ADR-002 §Observabilidad, ADR-009). Base `v0.4.0` + runbooks `docs/runbooks/` en `feature/docs-runbooks` lista para PR a `develop` (requiere autorización). No hay tareas Media/Alta pendientes; próxima iteración a definir (RAG/embeddings, prompts versionados o UI5/Electron features).
 
 ---
 
 # Commits pendientes
 
-- Ninguno. Fase 4 cierre completo: `develop` 60b12bf y `main` 55a33b9 + tag `v0.4.0` sincronizados (2026-08-28). Próximo trabajo en `docs/runbooks/`.
+- `feature/docs-runbooks` — docs(runbooks): Fase 4+ runbooks operativos + `pnpm format` CRLF→LF (117 files) listo para commit `docs(runbooks): add operational runbooks …` y PR `feature/docs-runbooks → develop` (requiere autorización push/PR).
 
 ---
 
@@ -171,5 +172,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 4 contrato base (2026-08-27): `EmailProviderPort` + `IntegrationError` en `core` + `FakeEmailProvider`/`HttpEmailProvider` + `createEmailProvider` en `backend` (DI fetch, timeout 30s, paginación, `IntegrationError`); hexagonal `shared←core←backend` preservado.
 - Fase 4 completo Pact+MSW+token+sync (2026-08-27): `HttpEmailProvider` + `TokenProvider` Bearer + `syncAccount` incremental + MSW `createHandlers` (`stripTrailingSlash` sin regex) + Pact V3 4 interacciones (137 tests, 93.24%/85.74%, `msw:true` allowBuilds) **mergeado** en `develop` PR #16 `f072dc1` (`quality`+CodeQL SUCCESS).
 - Fase 4 cierre (2026-08-28): PR `chore` #19 `119a2fe` sync PROJECT_STATE + PR #18 `55a33b9` `develop→main` + tag `v0.4.0` + sync `develop` #20 `60b12bf` — 137 tests 93.24%/85.74% verde, `quality`+CodeQL SUCCESS en todas.
+- Fase 4+ Runbooks (2026-08-28): `docs/runbooks/` 5 operativos + `README.md` (sin ADR, solo docs operativas `ARCHITECTURE_DECISIONS:3.8`).
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).
