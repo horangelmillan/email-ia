@@ -38,11 +38,12 @@ Mantener la BD local como fuente de verdad (`packages/db` + `EmailRepositoryPort
    const { synced } = await syncAccount('acc1', provider, repo, { maxResultsPerPage: 50 });
    ```
    Itera `pageToken` hasta `undefined`; idempotente (re-sync no duplica).
-4. Validar offline-first: todas las lecturas posteriores usan `repo` local; sync solo añade/actualiza.
+4. (Fase 5A) Indexado RAG opcional: `RagService` (`packages/backend/src/rag/rag.service.ts`) chunk 512/50 + `stripSignatures` + `AIProviderPort.embed` (Ollama `nomic-embed-text` por defecto) → `DrizzleVectorStore` (`email_chunks` JSON + cosine brute-force, `migrate()` `0002_rag_chunks.sql`). Hook: `EmailSyncService(provider, repo, rag?)` o `syncAccount(..., rag?)` → tras cada upsert `rag.indexEmail({id,accountId,subject,body})` (no bloquea sync si `RagError`). `RagPort.search(query,{limit,accountId})` usa `store.searchSimilar`.
+5. Validar offline-first: todas las lecturas posteriores usan `repo` local; sync solo añade/actualiza. Búsqueda `RagService.search` funciona offline tras indexado (vectors cifrados vía `DATABASE_ENCRYPTION_KEY`).
 
 ## Validación
 
-- `pnpm test:coverage` verde: `email-sync.service.test.ts` (loop `pageToken`, upsert server-wins, `accountId` obligatorio), `http-email-provider.test.ts` (DI `fetch`, `404→null`), `handlers.test.ts` (MSW paginado + 404 + health).
+- `pnpm test:coverage` verde: `email-sync.service.test.ts` (loop `pageToken`, upsert server-wins, `accountId` obligatorio, hook `rag.indexEmail` + no-falla si `RagError`), `http-email-provider.test.ts` (DI `fetch`, `404→null`), `handlers.test.ts` (MSW paginado + 404 + health), `rag/chunk.test.ts` (22 tests `stripSignatures`/`chunkText`), `rag.service.test.ts` (17 tests `FakeAI` + `DrizzleVectorStore` + `indexAccount` batch), `drizzle-vector-store.test.ts` (7 tests upsert/search ranking/account filter).
 - Pact consumer `email-ia-backend→email-provider-api` (4 interacciones `GET /messages`, `GET /messages/:id`, `GET /health`) en `pacts/` sin cambio semántico tras `pnpm format`.
 - `provider.healthCheck()` → `true/false` (false en error, no lanza).
 
