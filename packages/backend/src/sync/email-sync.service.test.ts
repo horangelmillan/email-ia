@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { EmailProviderMessage, EmailRepositoryPort } from '@email-ia/core';
+import { RagError } from '@email-ia/core';
 import { FakeEmailProvider } from '../integrations/fake-email-provider.js';
-import { syncAccount } from './email-sync.service.js';
+import { EmailSyncService, syncAccount } from './email-sync.service.js';
 
 function makeRepo(): EmailRepositoryPort & { all: Map<string, unknown> } {
   const map = new Map<
@@ -103,5 +104,58 @@ describe('syncAccount incremental offline-first', () => {
       throw new Error('db fail');
     }) as never;
     await expect(syncAccount('acc1', provider, repo)).rejects.toThrow('db fail');
+  });
+});
+
+describe('EmailSyncService rag hook', () => {
+  it('calls rag.indexEmail for each synced email', async () => {
+    const provider = new FakeEmailProvider({
+      a1: [MSG, { ...MSG, id: 'm2' }, { ...MSG, id: 'm3' }],
+    });
+    const repo = makeRepo();
+    const rag = {
+      indexEmail: vi.fn(async () => {}),
+      indexAccount: vi.fn(async () => 0),
+      search: vi.fn(async () => []),
+    };
+    const svc = new EmailSyncService(provider, repo, rag);
+    const res = await svc.syncAccount('a1');
+    expect(res.synced).toBe(3);
+    expect(rag.indexEmail).toHaveBeenCalledTimes(3);
+    expect(rag.indexEmail).toHaveBeenCalledWith({
+      id: 'm1',
+      accountId: 'a1',
+      subject: 'hi',
+      body: 'b',
+    });
+  });
+
+  it('does not fail sync if rag throws', async () => {
+    const provider = new FakeEmailProvider({
+      a1: [MSG, { ...MSG, id: 'm2' }],
+    });
+    const repo = makeRepo();
+    const rag = {
+      indexEmail: vi.fn(async () => {
+        throw new RagError('fail');
+      }),
+      indexAccount: vi.fn(async () => 0),
+      search: vi.fn(async () => []),
+    };
+    const svc = new EmailSyncService(provider, repo, rag);
+    await expect(svc.syncAccount('a1')).resolves.toEqual({ synced: 2, accountId: 'a1' });
+    expect(rag.indexEmail).toHaveBeenCalledTimes(2);
+    expect(repo.all.size).toBe(2);
+  });
+
+  it('rag opcional — constructor sin rag y función sin rag siguen funcionando', async () => {
+    const provider = new FakeEmailProvider({ a1: [MSG] });
+    const repo = makeRepo();
+    const svc = new EmailSyncService(provider, repo);
+    const res = await svc.syncAccount('a1');
+    expect(res.synced).toBe(1);
+    const repo2 = makeRepo();
+    const res2 = await syncAccount('a1', provider, repo2);
+    expect(res2.synced).toBe(1);
   });
 });
