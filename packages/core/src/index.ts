@@ -41,8 +41,11 @@ export type {
   EmailProviderMessage,
   EmailProviderPort,
 } from './ports/email-provider.port.js';
+export type { Chunk, VectorStorePort } from './ports/vector-store.port.js';
+export type { RagConfig, RagPort } from './ports/rag.port.js';
 export { AppError } from './errors/app-error.js';
 export type { AppErrorOptions } from './errors/app-error.js';
 export { DbError } from './errors/db-error.js';
 export { IntegrationError } from './errors/integration-error.js';
 export { ProviderError } from './errors/provider-error.js';
+export { RagError } from './errors/rag-error.js';
