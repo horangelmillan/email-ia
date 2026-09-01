@@ -44,4 +44,4 @@ pnpm lint      # ESLint
 pnpm test      # Vitest
 ```
 
-Documentación del proyecto: `PROJECT.md`, `ENGINEERING.md`, `PROJECT_STATE.md`, `ARCHITECTURE_DECISIONS.md`.
+Documentación del proyecto: `PROJECT.md`, `ENGINEERING.md`, `PROJECT_STATE.md`, `ARCHITECTURE_DECISIONS.md` .
