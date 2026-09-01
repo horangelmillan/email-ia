@@ -2,7 +2,7 @@
 
 ## Estado General
 
-Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos base mergeado (2026-08-27) → Fase 4 completo Pact+MSW+OAuth+sync **mergeado en `develop`** PR #16 `f072dc1` (2026-08-27) → **Fase 4 cierre mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28)** → **Fase 4+ Runbooks operativos mergeados en `develop` PR #22 `2461a95` (2026-08-28)** → **Fase 5A RAG `RagPort`+`VectorStorePort`+`DrizzleVectorStore`+`RagService` mergeado en `develop` PR #25 `6172fbe` (2026-08-28)**
+Fase: 2 — Arquitectura base (COMPLETADA) → Fase 3A CI/CD completa → Fase 3B Observabilidad completa (2026-08-27) → Fase 4 Contratos base mergeado (2026-08-27) → Fase 4 completo Pact+MSW+OAuth+sync **mergeado en `develop`** PR #16 `f072dc1` (2026-08-27) → **Fase 4 cierre mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28)** → **Fase 4+ Runbooks operativos mergeados en `develop` PR #22 `2461a95` (2026-08-28)** → **Fase 5A RAG `RagPort`+`VectorStorePort`+`DrizzleVectorStore`+`RagService` mergeado en `develop` PR #25 `6172fbe` (2026-08-28)** → **Fase 5B Prompts versionados + golden dataset `PromptPort`+`PromptService`+`PromptError` local (2026-08-28, 202 tests 91.82%/83.94% verde)**
 
 Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`ProviderError`, ADR-003). Tarea 2.2 completada: capa de BD con Drizzle + libSQL + migraciones + `SecretStorePort` (ADR-004, 2026-08-20). Tarea 2.3 completada: runtime IA embebido (llamafile + `ModelManagerPort`) + adaptadores Ollama/LM Studio + factory multi-runtime (ADR-005, 2026-08-20). Tarea 2.4 completada: UI5 CLI v4 bootstrap + Electron vite-plugin-electron + IPC (ADR-006, 2026-08-22). Fase 3A completada: CI endurecido + CodeQL + branch protection `develop` (ADR-007, 2026-08-26). Fase 3B completada: observabilidad Pino + OTel SDK opcional + health checks (ADR-009, 2026-08-27). Fase 4 contrato base **mergeado** PR #14 `c901cf1` (125 tests, 92.84%/85.08%). Fase 4 completo **mergeado** PR #16 `f072dc1`: `HttpEmailProvider` + `TokenProvider` (DI Bearer, `Authorization` header, `healthCheck` con auth) + `EmailSyncService` (`syncAccount` incremental offline-first, paginación `pageToken` loop, upsert `EmailRepositoryPort` server-wins) + MSW handlers (`msw/node` `createHandlers`, `stripTrailingSlash` sin regex) + Pact V3 consumer (`pacts/email-ia-backend-email-provider-api.json`, 4 interacciones list/get/health, `msw:true` allowBuilds). Baseline verde en `develop` (137 tests, 93.24%/85.74% cobertura, lint/typecheck/build/format:check OK, `quality`+CodeQL SUCCESS en PR #16). **Fase 4 cierre `v0.4.0` mergeado en `main` PR #18 `55a33b9` + tag `v0.4.0` (2026-08-28); `develop` sincronizado PR #20 `60b12bf`. Baseline `main` verde (`quality`+CodeQL SUCCESS).** **Fase 4+ Runbooks operativos mergeados en `develop` PR #22 `2461a95` (2026-08-28): `docs/runbooks/*.md` (5 runbooks + README, 137 tests 93.24%/85.74% verde, `quality`+CodeQL SUCCESS).** **Fase 5A RAG mergeado en `develop` PR #25 `6172fbe` (2026-08-28): `RagPort`+`VectorStorePort`+`RagError` en `core`, `email_chunks` + `DrizzleVectorStore` JSON cosine, `RagService` chunk 512/50 + `stripSignatures`, `EmailSyncService` hook `rag?`, 186 tests 91.75%/83.99% verde en feature (TDD, ponytail YAGNI, A aprobado).**
 
@@ -12,7 +12,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Progreso
 
-## Backend
+## Backend — Fase 5B prompts completada local (pendiente PR `feature/fase5b-prompts` → `develop`)
 
 - [x] Stack decidido: Node.js + Express, hexagonal + Shared Kernel (referencias: odata-server, node-modular-monolith-skill)
 - [x] Logging (Pino), configuración (dotenv + zod), error handling unificado, health checks decididos
@@ -62,7 +62,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 - [x] Vitest (backend/frontend), Supertest, Playwright, Pact + MSW, faker/factories decididos
 - [x] Configuración real: Vitest 4 (workspace, aliases @email-ia/* → src, cobertura umbral 80%) y Playwright (config raíz, e2e/)
-- [~] Estrategia de testing IA (golden dataset/evals definida en §3.7; materializar en Fase 2)
+- [x] Estrategia de testing IA — Fase 5B prompts golden dataset (ADR-010, 2026-08-28): `PromptPort`+`PromptError` en `core`, `PromptService` (`get` latest semver + `render` interpolate + `validateVariables` tipado + `evaluate` golden `expectedContains`/`expected`) en `backend/src/prompts/` con recursos JSON `summarize-email v1.0.0/1.1.0` + `classify-email v1.0.0` + `golden-dataset.json` 3 casos; 15 tests prompts (202 totales 91.82%/83.94%), `vitest.config.ts:23` exclude `**/*.json` para cobertura
 - [ ] Instalación de browsers Playwright cuando existan tests e2e reales
 
 ## Seguridad
@@ -101,6 +101,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 ## Baja
 
 - [x] Fase 4+ — Runbooks operativos (2026-08-28): `docs/runbooks/` — `01-instalacion.md` (pnpm + `allowBuilds` + UI5/Electron), `02-migraciones.md` (`drizzle-kit generate` + `migrate()` + `DATABASE_URL`/`SecretStorePort`), `03-gestion-modelos-ia.md` (`ModelManagerPort` + `FilesystemModelManager`/`OllamaProvider`/`LlamafileRuntime` + factory), `04-sync-incremental.md` (`EmailProviderPort` + `EmailSyncService` `pageToken` loop server-wins + `TokenProvider` Bearer + MSW/Pact), `05-recuperacion.md` (backup/restore `file:email-ia.db` + `SecretStorePort` clave + `GET /health`/`/ready`), `README.md` índice; `pnpm format` normaliza CRLF→LF 117 files (`core.autocrlf` + `.gitattributes eol=lf`)
+- [x] Fase 5B — prompts versionados + golden dataset (ADR-010, 2026-08-28): `PromptPort`+`PromptError` en `core` + `PromptService` (`get`/`list`/`render`/`evaluate`) en `backend/src/prompts/` + recursos JSON `summarize-email v1.0.0/1.1.0` + `classify-email v1.0.0` + `golden-dataset.json` 3 casos; DI `AIProviderPort` mockeada, semver ordering, variables tipadas `string|number|boolean`; 202 tests 91.82%/83.94% verde local (pendiente PR `feature/fase5b-prompts` → `develop`)
 - Futuro — Reevaluar Nx/Turborepo, Loki/Tempo o SaaS si hay destino de despliegue
 
 ---
@@ -127,6 +128,7 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 4 completo Pact+MSW+sync+token (2026-08-27): `HttpEmailProvider` + `TokenProvider` DI (`Authorization: Bearer`, `getAuthHeaders`), `EmailSyncService` incremental (`syncAccount` pageToken loop, upsert `EmailRepositoryPort` con server-wins, offline-first), MSW `msw@2.8.6` (`createHandlers` paginado + 404 + health, `stripTrailingSlash` sin regex) y Pact V3 `@pact-foundation/pact@15.0.1` (`email-ia-backend→email-provider-api` 4 interacciones, pact file `pacts/email-ia-backend-email-provider-api.json`). `msw:true` en `allowBuilds` (postinstall ok), 137 tests 93.24%/85.74% cobertura, `pnpm lint/typecheck/build/format:check` verdes. Bloqueo OAuth real (client id/secret Gmail/Outlook/IMAP sin credenciales) mitigado vía `TokenProvider` callback + `SecretStorePort`; adaptadores reales Gmail/Outlook usan mismo `HttpEmailProvider` con `tokenProvider` vía `SecretStore` (no hardcode secrets) y sync incremental ya valida contrato offline-first (§3.7). PR #16 mergeado `f072dc1` con `quality`+CodeQL SUCCESS; `pnpm format` posterior corrige pact JSON arrays multilínea (19 líneas) sin cambio semántico.
 - Fase 4 cierre (2026-08-28): `develop` 1b30cd7→119a2fe (PR #19) + `develop→main` PR #18 `55a33b9` + tag `v0.4.0` + sync `develop` PR #20 `60b12bf` — 3 PRs con `quality`+CodeQL SUCCESS, `core.autocrlf` CRLF→LF normalizado vía `pnpm format`; `pnpm format:check` ya verde en ambos branches.
 - Fase 4+ Runbooks (2026-08-28): `docs/runbooks/` 5 runbooks + `README.md` creados según `ARCHITECTURE_DECISIONS:3.8` (objetivo/requisitos/procedimiento/validación/recuperación); `pnpm format:check` recayó a 117 files con CRLF (`system gitconfig autocrlf=true` + checkout previo) → `git config core.autocrlf false` + `pnpm format` (117 files LF, pact arrays multilínea 19 líneas) deja `format:check` verde; `pnpm lint/typecheck/build/test:coverage` verdes (137 tests 93.24%/85.74%); sin ADR (no decisión arquitectónica, solo docs operativas).
+- Fase 5B Prompts (2026-08-28): `PromptPort`+`PromptError` en `core` + `PromptService` (`compareVersions` semver, `interpolate` `{{var}}`, `validateVariables` tipado, `evaluate` `expectedContains` case-insensitive/`expected` exacto) + recursos JSON versionados + `golden-dataset.json` 3 casos; 202 tests 91.82%/83.94% verde; `vitest.config.ts:23` exclude `**/*.json` evita 0% JSON; `PromptService` 92.1%/83.07% sin nuevas deps.
 
 ---
 
@@ -143,19 +145,19 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 
 # Bloqueadores
 
-- Ninguno bloqueante. Fase 5A RAG **mergeado** en `develop` PR #25 `6172fbe` (2026-08-28, 186 tests 91.75%/83.99% verde, `quality`+CodeQL SUCCESS). Fase 4+ Runbooks **mergeado** PR #22 `2461a95` (137 tests 93.24%/85.74%). OAuth real Gmail/Outlook/IMAP sin credenciales — mitigado con `TokenProvider` DI + `SecretStorePort`; MSW/Pact validan contrato sin red. Hang pnpm + electron-builder mitigado. CodeQL cuota Free OK. OTel off por defecto. Pact V3 warning no bloqueante.
+- Ninguno bloqueante. Fase 5B prompts **completada local** (202 tests 91.82%/83.94% verde, pendiente PR `feature/fase5b-prompts` → `develop`). Fase 5A RAG **mergeado** PR #25 `6172fbe` (186 tests 91.75%/83.99% `quality`+CodeQL SUCCESS). Fase 4+ Runbooks **mergeado** PR #22 `2461a95`. OAuth real sin credenciales mitigado `TokenProvider`+`SecretStorePort`; hang pnpm+electron-builder mitigado; CodeQL cuota Free OK; OTel off por defecto; Pact V3 warning no bloqueante.
 
 ---
 
 # Próxima tarea
 
-- **Fase 5B — prompts versionados + golden dataset (§3.7)** — Tras Fase 5A mergeado PR #25 `6172fbe` (186 tests 91.75%/83.99% verde, `quality`+CodeQL SUCCESS). Siguiente: Fase 5C UI5/Electron features (`sapui5-email-ia` + `hexagonal-email-ia`). Reevaluar Nx/Turborepo, Loki/Tempo o SaaS solo si hay destino de despliegue (ADR-002/009).
+- **Fase 5C — UI5/Electron features (§3.6/§3.8)** — Tras Fase 5B local (202 tests 91.82%/83.94% verde). Siguiente: `sapui5-email-ia` (Component/manifest/view/controller/model/service `home`/`inbox`) + `hexagonal-email-ia` wiring `RagPort`/`PromptPort` a UI, `GET /rag/search` + `GET /prompts/evaluate` opcional, `vite-plugin-electron` IPC. Reevaluar Nx/Turborepo, Loki/Tempo o SaaS solo si hay destino de despliegue (ADR-002/009).
 
 ---
 
 # Commits pendientes
 
-- Ninguno. Fase 5A RAG mergeado PR #25 `6172fbe` en `develop` (2026-08-28, 186 tests 91.75%/83.99% verde, `quality`+CodeQL SUCCESS). Próximo commit: sync `PROJECT_STATE.md` post-merge Fase 5A (requiere `chore/sync-*` PR `develop`).
+- **Fase 5B** — commit local pendiente PR `feature/fase5b-prompts`: `feat(core): PromptPort PromptError` + `feat(backend): PromptService prompts versionados golden` + `docs(adr): ADR-010` + `chore(state): Fase 5B PROJECT_STATE` (202 tests 91.82%/83.94% verde, `quality`+CodeQL pendiente). Base `develop` en `a1e7a19`.
 
 ---
 
@@ -173,5 +175,6 @@ Estado: Tarea 2.1 completada (hexágono base `AIProviderPort` + `AppError`/`Prov
 - Fase 4 completo Pact+MSW+token+sync (2026-08-27): `HttpEmailProvider` + `TokenProvider` Bearer + `syncAccount` incremental + MSW `createHandlers` (`stripTrailingSlash` sin regex) + Pact V3 4 interacciones (137 tests, 93.24%/85.74%, `msw:true` allowBuilds) **mergeado** en `develop` PR #16 `f072dc1` (`quality`+CodeQL SUCCESS).
 - Fase 4 cierre (2026-08-28): PR `chore` #19 `119a2fe` sync PROJECT_STATE + PR #18 `55a33b9` `develop→main` + tag `v0.4.0` + sync `develop` #20 `60b12bf` — 137 tests 93.24%/85.74% verde, `quality`+CodeQL SUCCESS en todas.
 - Fase 4+ Runbooks (2026-08-28): `docs/runbooks/` 5 operativos + `README.md` (sin ADR, solo docs operativas `ARCHITECTURE_DECISIONS:3.8`) **mergeado** PR #22 `2461a95` en `develop` (autorizado 2026-08-28) — `quality`+CodeQL SUCCESS.
+- Fase 5B Prompts (2026-08-28): `PromptPort`+`PromptError`+`PromptService`+recursos JSON+`golden-dataset.json` (ADR-010) — 202 tests 91.82%/83.94% verde local, pendiente PR `feature/fase5b-prompts` → `develop`.
 - Proceso de ADR formalizado: numeración secuencial, nunca modificar historial, decisiones sustituidas referenciadas por ADR nuevos.
 - ENGINEERING.md y PROJECT.md no requieren cambios; sus referencias a "plantilla oficial" se interpretan según §4 de ARCHITECTURE_DECISIONS.md (repositorios de referencia, no plantillas rígidas).

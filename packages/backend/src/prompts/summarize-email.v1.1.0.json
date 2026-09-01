@@ -1,0 +1,21 @@
+{
+  "name": "summarize-email",
+  "version": "1.1.0",
+  "description": "Resume un email con tono profesional",
+  "metadata": {
+    "description": "v1.1 mejora tono profesional",
+    "tags": ["summarize", "email", "v1.1"],
+    "author": "email-ia",
+    "createdAt": "2026-08-28"
+  },
+  "modelSelector": ["llama-3", "gpt-4"],
+  "variables": [
+    { "name": "subject", "type": "string", "required": false },
+    { "name": "body", "type": "string", "required": true },
+    { "name": "tone", "type": "string", "required": false }
+  ],
+  "messages": [
+    { "role": "system", "content": "Eres un asistente que resume emails con tono {{tone}}." },
+    { "role": "user", "content": "Asunto: {{subject}}\nCuerpo: {{body}}\nResume:" }
+  ]
+}
