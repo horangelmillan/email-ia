@@ -1,0 +1,20 @@
+{
+  "name": "summarize-email",
+  "version": "1.0.0",
+  "description": "Resume un email en una frase corta",
+  "metadata": {
+    "description": "v1 baseline summarize",
+    "tags": ["summarize", "email"],
+    "author": "email-ia",
+    "createdAt": "2026-08-28"
+  },
+  "modelSelector": [],
+  "variables": [
+    { "name": "subject", "type": "string", "required": false, "description": "Asunto del email" },
+    { "name": "body", "type": "string", "required": true, "description": "Cuerpo del email" }
+  ],
+  "messages": [
+    { "role": "system", "content": "Eres un asistente que resume emails de forma concisa." },
+    { "role": "user", "content": "Asunto: {{subject}}\nCuerpo: {{body}}\nResume en una frase:" }
+  ]
+}

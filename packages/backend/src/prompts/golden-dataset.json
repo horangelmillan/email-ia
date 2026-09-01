@@ -1,0 +1,24 @@
+[
+  {
+    "id": "summarize-001",
+    "promptName": "summarize-email",
+    "version": "1.0.0",
+    "variables": {
+      "subject": "Reunión mañana",
+      "body": "Recordatorio: reunión mañana a las 10h en sala A."
+    },
+    "expectedContains": "reunión"
+  },
+  {
+    "id": "summarize-002",
+    "promptName": "summarize-email",
+    "variables": { "subject": "Oferta", "body": "Descuento 50% solo hoy." },
+    "expectedContains": "Descuento"
+  },
+  {
+    "id": "classify-001",
+    "promptName": "classify-email",
+    "variables": { "subject": "Factura", "body": "Adjunto factura del mes." },
+    "expectedContains": "trabajo"
+  }
+]
