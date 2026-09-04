@@ -14,6 +14,21 @@
         <StandardListItem title="{i18n>inboxPlaceholder}" />
       </List>
       <ObjectStatus text="Unread: {app>/inboxSummary/unread}" class="sapUiSmallMargin" />
+      <VBox class="sapUiMediumMargin">
+        <HBox alignItems="Center">
+          <SearchField id="ragSearchField" placeholder="{i18n>ragSearchPlaceholder}" search=".onSearchRag" width="100%" />
+          <Button text="{i18n>ragSearchButton}" press=".onSearchRag" type="Emphasized" class="sapUiTinyMarginBegin" />
+        </HBox>
+        <List
+          id="ragResultsList"
+          headerText="{i18n>ragResultsHeader}"
+          items="{app>/ragResults}"
+          noDataText="{i18n>ragNoResults}"
+          class="sapUiSmallMarginTop"
+        >
+          <StandardListItem title="{app>chunk/content}" description="{app>score}" wrapping="true" />
+        </List>
+      </VBox>
     </content>
   </Page>
 </mvc:View>

@@ -25,6 +25,12 @@
           class="sapUiSmallMarginTop"
         />
       </VBox>
+      <VBox class="sapUiMediumMargin">
+        <List headerText="{i18n>promptListHeader}" items="{app>/prompts}" noDataText="{i18n>promptListEmpty}">
+          <StandardListItem title="{app>name}" description="{app>version}" />
+        </List>
+        <Button text="{i18n>promptRefresh}" press=".onRefreshPrompts" class="sapUiSmallMarginTop" />
+      </VBox>
     </f:content>
   </f:DynamicPage>
 </mvc:View>

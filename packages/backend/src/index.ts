@@ -31,6 +31,8 @@ export { syncAccount } from './sync/email-sync.service.js';
 export type { SyncResult, SyncOptions } from './sync/email-sync.service.js';
 export { createHandlers } from './integrations/mocks/handlers.js';
 export { PromptService } from './prompts/prompt.service.js';
+export { createRagRouter } from './rag/routes.js';
+export { createPromptRouter } from './prompts/routes.js';
 export type { MockMessage } from './integrations/mocks/handlers.js';
 
 export function makeProvider(baseUrl: string) {
