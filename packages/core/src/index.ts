@@ -43,9 +43,21 @@ export type {
 } from './ports/email-provider.port.js';
 export type { Chunk, VectorStorePort } from './ports/vector-store.port.js';
 export type { RagConfig, RagPort } from './ports/rag.port.js';
+export type {
+  EvaluationCaseResult,
+  EvaluationResult,
+  GoldenCase,
+  PromptMessageTemplate,
+  PromptMetadata,
+  PromptPort,
+  PromptTemplate,
+  PromptVariable,
+  PromptVariableType,
+} from './ports/prompt.port.js';
 export { AppError } from './errors/app-error.js';
 export type { AppErrorOptions } from './errors/app-error.js';
 export { DbError } from './errors/db-error.js';
 export { IntegrationError } from './errors/integration-error.js';
 export { ProviderError } from './errors/provider-error.js';
+export { PromptError } from './errors/prompt-error.js';
 export { RagError } from './errors/rag-error.js';

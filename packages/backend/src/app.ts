@@ -4,13 +4,17 @@ import cors from 'cors';
 import compression from 'compression';
 import * as pinoHttpImport from 'pino-http';
 import type { Logger } from 'pino';
-import { AppError } from '@email-ia/core';
+import { AppError, type PromptPort, type RagPort } from '@email-ia/core';
 import { getHealth, getReadiness } from './health/health.js';
+import { createPromptRouter } from './prompts/routes.js';
+import { createRagRouter } from './rag/routes.js';
 
 export interface CreateAppOptions {
   logger?: Logger;
   readinessChecks?: () => Record<string, 'ok' | 'error'> | Promise<Record<string, 'ok' | 'error'>>;
   setup?: (app: express.Express) => void;
+  rag?: RagPort;
+  prompts?: PromptPort;
 }
 
 export function createApp(options: CreateAppOptions = {}): express.Express {
@@ -42,6 +46,9 @@ export function createApp(options: CreateAppOptions = {}): express.Express {
     const status = readiness.status === 'ok' ? 200 : 503;
     res.status(status).json(readiness);
   });
+
+  if (options.rag) app.use('/rag', createRagRouter(options.rag));
+  if (options.prompts) app.use('/prompts', createPromptRouter(options.prompts));
 
   if (options.setup) options.setup(app);
 
